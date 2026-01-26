@@ -1,73 +1,57 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, Zap, Smartphone, Key } from 'lucide-react';
-import { auth } from '../lib/firebase';
-import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
+import { auth, db } from '../lib/firebase';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 
 const Login = () => {
     const [isAdmin, setIsAdmin] = useState(false);
-    const [phone, setPhone] = useState('');
-    const [otp, setOtp] = useState('');
-    const [step, setStep] = useState('phone'); // phone, otp
-    const [confirmObj, setConfirmObj] = useState(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    const setupRecaptcha = () => {
-        if (!window.recaptchaVerifier) {
-            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-                'size': 'invisible'
-            });
-        }
-    };
-
-    const handleSendOtp = async (e) => {
-        e.preventDefault();
+    const handleGoogleLogin = async () => {
         setLoading(true);
-
-        // Fallback for demo if Firebase keys aren't set
-        if (!auth || !auth.app.options.apiKey || auth.app.options.apiKey === "YOUR_API_KEY") {
-            setTimeout(() => {
-                setConfirmObj({ confirm: async (code) => { if (code === '123456') return true; throw new Error('Invalid code'); } });
-                setStep('otp');
-                setLoading(false);
-                // Alerting only for clarity in demo
-                console.log("DEMO MODE: OTP is 123456");
-            }, 1000);
-            return;
-        }
-
         try {
-            setupRecaptcha();
+            const provider = new GoogleAuthProvider();
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
 
-            // Format phone number: Remove spaces and ensure +91
-            let formattedPhone = phone.replace(/\s+/g, '');
-            if (!formattedPhone.startsWith('+')) {
-                formattedPhone = '+91' + formattedPhone;
+            if (user) {
+                // Check for admin email (Simple hardcoded check for security)
+                if (isAdmin && user.email !== "hosteladmin@example.com") { // Replace with your admin email
+                    alert("Access Denied: You are not an admin.");
+                    await auth.signOut();
+                    setLoading(false);
+                    return;
+                }
+
+                // Check Firestore for user profile
+                if (!isAdmin) {
+                    const userDoc = await import('firebase/firestore').then(mod => mod.getDoc(mod.doc(db, "users", user.uid)));
+
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        localStorage.setItem('user', JSON.stringify({ ...userData, email: user.email, role: 'user', uid: user.uid, photo: user.photoURL }));
+                        navigate('/menu');
+                    } else {
+                        // Create basic profile
+                        localStorage.setItem('user', JSON.stringify({
+                            name: user.displayName,
+                            email: user.email,
+                            role: 'user',
+                            uid: user.uid,
+                            photo: user.photoURL
+                        }));
+                        navigate('/menu'); // Or '/create-account' if you want room number first
+                    }
+                } else {
+                    localStorage.setItem('user', JSON.stringify({ email: user.email, role: 'admin', uid: user.uid }));
+                    navigate('/admin');
+                }
             }
-
-            const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, window.recaptchaVerifier);
-            setConfirmObj(confirmationResult);
-            setStep('otp');
         } catch (error) {
             console.error(error);
-            alert("Error sending OTP: " + (error.message || "Unknown error"));
-        }
-        setLoading(false);
-    };
-
-    const handleVerifyOtp = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        try {
-            // In a real app we would check backend admin claim, but for demo we trust local state or DB
-            if (confirmObj) await confirmObj.confirm(otp);
-
-            localStorage.setItem('user', JSON.stringify({ phone, role: isAdmin ? 'admin' : 'user' }));
-            navigate(isAdmin ? '/admin' : '/menu');
-        } catch (error) {
-            console.error(error);
-            alert("Invalid OTP or Verification Failed");
+            alert("Google Login Failed: " + error.message);
         }
         setLoading(false);
     };
@@ -96,49 +80,15 @@ const Login = () => {
                     </button>
                 </div>
 
-                {step === 'phone' ? (
-                    <form onSubmit={handleSendOtp} className="input-group">
-                        <label className="label">Phone Number / Email</label>
-                        <div style={{ position: 'relative' }}>
-                            <Smartphone size={20} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
-                            <input
-                                type="text"
-                                className="input"
-                                style={{ paddingLeft: '40px' }}
-                                placeholder="+91 98765 43210"
-                                value={phone}
-                                onChange={(e) => setPhone(e.target.value)}
-                                required
-                            />
-                        </div>
-                        <div id="recaptcha-container"></div>
-                        <button type="submit" className="btn btn-primary" style={{ marginTop: '1rem', width: '100%' }} disabled={loading}>
-                            {loading ? 'Sending...' : 'Get OTP'}
-                        </button>
-                    </form>
-                ) : (
-                    <form onSubmit={handleVerifyOtp} className="input-group">
-                        <label className="label">Enter OTP</label>
-                        <div style={{ position: 'relative' }}>
-                            <Key size={20} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
-                            <input
-                                type="text"
-                                className="input"
-                                style={{ paddingLeft: '40px' }}
-                                placeholder="123456"
-                                value={otp}
-                                onChange={(e) => setOtp(e.target.value)}
-                                required
-                            />
-                        </div>
-                        <button type="submit" className="btn btn-primary" style={{ marginTop: '1rem', width: '100%' }} disabled={loading}>
-                            {loading ? 'Verifying...' : 'Verify & Login'}
-                        </button>
-                        <button type="button" className="btn btn-outline" style={{ marginTop: '0.5rem', width: '100%' }} onClick={() => setStep('phone')}>
-                            Back
-                        </button>
-                    </form>
-                )}
+                <button
+                    onClick={handleGoogleLogin}
+                    className="btn btn-secondary"
+                    style={{ width: '100%', padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', fontSize: '1rem' }}
+                    disabled={loading}
+                >
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="24" height="24" alt="Google" />
+                    {loading ? 'Signing in...' : 'Sign in with Google'}
+                </button>
             </div>
         </div>
     );

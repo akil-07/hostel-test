@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
 import UserMenu from './pages/UserMenu';
 import UserOrders from './pages/UserOrders';
+import CreateAccount from './pages/CreateAccount';
 import './App.css';
 
 const ProtectedRoute = ({ children, requiredRole }) => {
@@ -46,6 +47,14 @@ function App() {
           element={
             <ProtectedRoute requiredRole="user">
               <UserOrders />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/create-account"
+          element={
+            <ProtectedRoute requiredRole="user">
+              <CreateAccount />
             </ProtectedRoute>
           }
         />

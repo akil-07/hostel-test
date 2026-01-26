@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
-import { ShoppingBag, Plus, Minus, Search, Clock, Calendar, MapPin, User, MessageSquare, X } from 'lucide-react';
+import { ShoppingBag, Plus, Minus, Search, Clock, Calendar, MapPin, User, MessageSquare, X, Building } from 'lucide-react';
 import { db, auth } from '../lib/firebase';
 import { collection, getDocs, addDoc, updateDoc, doc, increment } from 'firebase/firestore';
 
@@ -15,6 +15,7 @@ const UserMenu = () => {
     const [orderDetails, setOrderDetails] = useState({
         name: '',
         room: '',
+        hostelBlock: '',
         phone: '',
         date: new Date().toISOString().split('T')[0],
         time: '',
@@ -29,8 +30,9 @@ const UserMenu = () => {
 
         setOrderDetails(prev => ({
             ...prev,
-            name: savedUser.name || '',
-            room: savedUser.room || '',
+            name: authUser.name || savedUser.name || '',
+            room: authUser.roomNo || savedUser.room || '',
+            hostelBlock: authUser.hostelBlock || '',
             phone: authUser.phone || savedUser.phone || '',
             time: getCurrentTimePlus(30) // Default 30 mins from now
         }));
@@ -112,8 +114,8 @@ const UserMenu = () => {
     };
 
     const handlePayment = async () => {
-        if (!orderDetails.name || !orderDetails.room || !orderDetails.time) {
-            alert("Please fill in all required fields (Name, Room, Delivery Time)");
+        if (!orderDetails.name || !orderDetails.room || !orderDetails.hostelBlock || !orderDetails.time) {
+            alert("Please fill in all required fields (Name, Room, Hostel Block, Delivery Time)");
             return;
         }
 
@@ -329,6 +331,27 @@ const UserMenu = () => {
                                         onChange={e => setOrderDetails({ ...orderDetails, room: e.target.value })}
                                         placeholder="e.g. A-302"
                                     />
+                                </div>
+                            </div>
+
+                            <div className="input-group">
+                                <label className="label">Hostel Block</label>
+                                <div style={{ position: 'relative' }}>
+                                    <Building size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
+                                    <select
+                                        className="input"
+                                        style={{ paddingLeft: '40px', appearance: 'none' }}
+                                        value={orderDetails.hostelBlock}
+                                        onChange={e => setOrderDetails({ ...orderDetails, hostelBlock: e.target.value })}
+                                    >
+                                        <option value="" disabled>Select Hostel Block</option>
+                                        <option value="Saveetha Hostels">Saveetha Hostels</option>
+                                        <option value="Annex Hostel (1st years)">Annex Hostel (1st years)</option>
+                                        <option value="Noyyal Hostel (SEC, SIMATS)">Noyyal Hostel (SEC, SIMATS)</option>
+                                        <option value="Pornai Hostel (Girls)">Pornai Hostel (Girls)</option>
+                                        <option value="Vaigai Hostel (Boys, SIMATS)">Vaigai Hostel (Boys, SIMATS)</option>
+                                        <option value="Krishna Hostel (Girls, SIMATS)">Krishna Hostel (Girls, SIMATS)</option>
+                                    </select>
                                 </div>
                             </div>
 
