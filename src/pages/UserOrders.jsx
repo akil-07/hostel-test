@@ -81,7 +81,7 @@ const UserOrders = () => {
                     <div className="flex-col" style={{ gap: '1.5rem' }}>
                         {orders.map(order => (
                             <div key={order.id} className="card animate-fade-in" style={{ padding: '1.5rem' }}>
-                                <div className="flex-between" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
+                                <div className="flex-between" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                                     <div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
                                             <Calendar size={14} color="var(--text-muted)" />
@@ -111,7 +111,7 @@ const UserOrders = () => {
                                     ))}
                                 </div>
 
-                                <div className="flex-between" style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
+                                <div className="flex-between" style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                                     <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
                                         Deliver to: <span style={{ color: 'var(--text-main)' }}>{order.userDetails.room}</span> ({order.userDetails.time})
                                     </div>
