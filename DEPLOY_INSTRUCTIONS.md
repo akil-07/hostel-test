@@ -1,4 +1,4 @@
-# 🚀 Hosting Your Hostel App
+ 🚀 Hosting Your Hostel App
 
 Since your app uses **Firebase** and **Razorpay**, we need to set it up correctly on a hosting provider. I recommend **Vercel** because it's the easiest and fastest.
 

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import Navbar from '../components/Navbar';
 import { ShoppingBag, Plus, Minus, Search, Clock, Calendar, MapPin, User, MessageSquare, X, Building } from 'lucide-react';
 import { db, auth } from '../lib/firebase';
-import { collection, getDocs, addDoc, updateDoc, doc, increment } from 'firebase/firestore';
+import { collection, getDocs, addDoc, updateDoc, doc, increment, getDoc } from 'firebase/firestore';
 
 const UserMenu = () => {
     const [items, setItems] = useState([]);
@@ -50,7 +51,7 @@ const UserMenu = () => {
         // Fetch store status
         const fetchStatus = async () => {
             try {
-                const docSnap = await import('firebase/firestore').then(mod => mod.getDoc(doc(db, "settings", "global")));
+                const docSnap = await getDoc(doc(db, "settings", "global"));
                 if (docSnap.exists()) setStoreStatus(docSnap.data());
             } catch (e) {
                 console.log("No store status");
@@ -115,7 +116,7 @@ const UserMenu = () => {
 
     const handlePayment = async () => {
         if (!orderDetails.name || !orderDetails.room || !orderDetails.hostelBlock || !orderDetails.time) {
-            alert("Please fill in all required fields (Name, Room, Hostel Block, Delivery Time)");
+            toast.error("Please fill in all required fields (Name, Room, Hostel Block, Delivery Time)");
             return;
         }
 
@@ -158,13 +159,13 @@ const UserMenu = () => {
                         });
                     }));
 
-                    alert(`Order Placed Successfully! We will deliver to Room ${orderDetails.room} around ${orderDetails.time}.`);
+                    toast.success(`Order Placed Successfully! We will deliver to Room ${orderDetails.room} around ${orderDetails.time}.`, { duration: 5000 });
                     setCart({});
                     setShowCheckout(false);
                     fetchItems(); // Refresh menu to show new stock levels
                 } catch (err) {
                     console.error("Order save failed", err);
-                    alert("Payment success but failed to save order. Contact Admin.");
+                    toast.error("Payment success but failed to save order. Contact Admin.");
                 }
             },
             prefill: {

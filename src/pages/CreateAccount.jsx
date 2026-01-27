@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { User, Home, Building, Save } from 'lucide-react';
 import { auth, db } from '../lib/firebase';
@@ -60,7 +61,7 @@ const CreateAccount = () => {
             navigate('/menu');
         } catch (error) {
             console.error("Error creating account:", error);
-            alert("Failed to create account. Please try again.");
+            toast.error("Failed to create account. Please try again.");
         } finally {
             setLoading(false);
         }

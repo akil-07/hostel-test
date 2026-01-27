@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import Navbar from '../components/Navbar';
 import { Plus, Trash2, Image as ImageIcon, Package, ShoppingBag, CheckCircle, X, Clock, RefreshCcw } from 'lucide-react';
 import { db } from '../lib/firebase';
-import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, orderBy, query } from 'firebase/firestore';
+import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, orderBy, query, getDoc, setDoc } from 'firebase/firestore';
 
 const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('orders'); // 'items' or 'orders'
@@ -23,7 +24,7 @@ const AdminDashboard = () => {
 
     const fetchStoreStatus = async () => {
         try {
-            const docSnap = await import('firebase/firestore').then(mod => mod.getDoc(doc(db, "settings", "global")));
+            const docSnap = await getDoc(doc(db, "settings", "global"));
             if (docSnap.exists()) {
                 setStoreStatus(docSnap.data());
             }
@@ -37,15 +38,15 @@ const AdminDashboard = () => {
         if (status === 'later' && !message) return;
 
         try {
-            await import('firebase/firestore').then(mod => mod.setDoc(doc(db, "settings", "global"), {
+            await setDoc(doc(db, "settings", "global"), {
                 status,
                 message
-            }));
+            });
             setStoreStatus({ status, message });
-            alert(`Store status updated to: Deliver ${status === 'now' ? 'Now' : 'Later'}`);
+            toast.success(`Store status updated to: Deliver ${status === 'now' ? 'Now' : 'Later'}`);
         } catch (error) {
             console.error(error);
-            alert("Failed to update status");
+            toast.error("Failed to update status");
         }
     };
 
@@ -92,7 +93,7 @@ const AdminDashboard = () => {
             // Optimistic update
             setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
         } catch (error) {
-            alert("Failed to update status");
+            toast.error("Failed to update status");
         }
     };
 
@@ -134,7 +135,7 @@ const AdminDashboard = () => {
                     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Image timeout")), 5000));
                     imageUrl = await Promise.race([compressionPromise, timeoutPromise]);
                 } catch (err) {
-                    alert("Image Error: " + err.message);
+                    toast.error("Image Error: " + err.message);
                     setLoading(false); return;
                 }
             }
@@ -143,9 +144,9 @@ const AdminDashboard = () => {
             });
             setNewItem({ name: '', price: '', stock: '' }); setImageFile(null);
             await fetchItems();
-            alert("Item added successfully!");
+            toast.success("Item added successfully!");
         } catch (error) {
-            alert("Error adding item: " + error.message);
+            toast.error("Error adding item: " + error.message);
         }
         setLoading(false);
     };
@@ -161,10 +162,10 @@ const AdminDashboard = () => {
                 });
                 // Optimistic update
                 setItems(items.map(i => i.id === item.id ? { ...i, stock: newStock } : i));
-                alert(`Stock updated! New stock: ${newStock}`);
+                toast.success(`Stock updated! New stock: ${newStock}`);
             } catch (error) {
                 console.error(error);
-                alert("Failed to update stock");
+                toast.error("Failed to update stock");
             }
         }
     };

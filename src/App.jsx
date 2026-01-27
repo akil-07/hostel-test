@@ -5,6 +5,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import UserMenu from './pages/UserMenu';
 import UserOrders from './pages/UserOrders';
 import CreateAccount from './pages/CreateAccount';
+import { Toaster } from 'react-hot-toast';
 import './App.css';
 
 const ProtectedRoute = ({ children, requiredRole }) => {
@@ -24,6 +25,7 @@ const ProtectedRoute = ({ children, requiredRole }) => {
 function App() {
   return (
     <Router>
+      <Toaster position="top-center" toastOptions={{ duration: 4000 }} />
       <Routes>
         <Route path="/" element={<Login />} />
         <Route
