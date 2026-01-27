@@ -196,11 +196,13 @@ const UserMenu = () => {
         };
 
         // --- PHONEPE INTEGRATION CONFIGURATION ---
-        // Note: Real PhonePe integration requires a Backend (Node/Python) to salt/sign the request.
-        // Frontend-only PhonePe integration is unsafe/impossible for standard Gateway.
+        // Configuration Constants
+        const PHONEPE_MERCHANT_ID = "MERC" + Date.now().toString().slice(-4);
+        const PHONEPE_SALT_INDEX = 1;
+        // Note: In a real environment, the hashing must happen on a secure backend.
 
         try {
-            const toastId = toast.loading("Connecting to PhonePe Secure Gateway...");
+            const toastId = toast.loading("Redirecting to PhonePe Secure Gateway...");
 
             // SIMULATION OF BACKEND CALL & REDIRECT
             // In a real app, you would do:
@@ -349,150 +351,150 @@ const UserMenu = () => {
                     ))}
                 </div>
             )}
+
+            { }
+            <div className="animate-fade-in" style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 90 }}>
+                {cartItemCount > 0 ? (
+                    <button
+                        className="btn btn-primary"
+                        style={{ padding: '1rem 2rem', borderRadius: '50px', boxShadow: '0 10px 25px -5px rgba(139, 92, 246, 0.6)' }}
+                        onClick={handleInitialCheckout}
+                    >
+                        <ShoppingBag size={20} /> Checkout ₹{totalAmount}
+                    </button>
+                ) : (
+                    <div style={{
+                        background: 'var(--bg-card)',
+                        padding: '1rem 2rem',
+                        borderRadius: '50px',
+                        border: '1px solid var(--border)',
+                        color: 'var(--text-muted)',
+                        boxShadow: 'var(--shadow-lg)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem'
+                    }}>
+                        <ShoppingBag size={20} /> Cart Empty
+                    </div>
+                )}
+            </div>
+
+            {/* Checkout Modal */}
+
+            {
+                showCheckout && (
+                    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+                        <div className="card animate-fade-in" style={{ width: '100%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto' }}>
+                            <div className="flex-between" style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
+                                <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>Delivery Details</h3>
+                                <button onClick={() => setShowCheckout(false)} className="btn btn-secondary" style={{ padding: '0.5rem' }}>
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <div className="flex-col" style={{ gap: '1rem' }}>
+                                <div className="input-group">
+                                    <label className="label">Full Name</label>
+                                    <div style={{ position: 'relative' }}>
+                                        <User size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
+                                        <input
+                                            className="input" style={{ paddingLeft: '40px' }}
+                                            value={orderDetails.name}
+                                            onChange={e => setOrderDetails({ ...orderDetails, name: e.target.value })}
+                                            placeholder="Enter your name"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="input-group">
+                                    <label className="label">Room Number</label>
+                                    <div style={{ position: 'relative' }}>
+                                        <MapPin size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
+                                        <input
+                                            className="input" style={{ paddingLeft: '40px' }}
+                                            value={orderDetails.room}
+                                            onChange={e => setOrderDetails({ ...orderDetails, room: e.target.value })}
+                                            placeholder="e.g. A-302"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="input-group">
+                                    <label className="label">Hostel Block</label>
+                                    <div style={{ position: 'relative' }}>
+                                        <Building size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
+                                        <select
+                                            className="input"
+                                            style={{ paddingLeft: '40px', appearance: 'none' }}
+                                            value={orderDetails.hostelBlock}
+                                            onChange={e => setOrderDetails({ ...orderDetails, hostelBlock: e.target.value })}
+                                        >
+                                            <option value="" disabled>Select Hostel Block</option>
+                                            <option value="Saveetha Hostels">Saveetha Hostels</option>
+                                            <option value="Annex Hostel (1st years)">Annex Hostel (1st years)</option>
+                                            <option value="Noyyal Hostel (SEC, SIMATS)">Noyyal Hostel (SEC, SIMATS)</option>
+                                            <option value="Pornai Hostel (Girls)">Pornai Hostel (Girls)</option>
+                                            <option value="Vaigai Hostel (Boys, SIMATS)">Vaigai Hostel (Boys, SIMATS)</option>
+                                            <option value="Krishna Hostel (Girls, SIMATS)">Krishna Hostel (Girls, SIMATS)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '1rem' }}>
+                                    <div className="input-group" style={{ flex: 1 }}>
+                                        <label className="label">Date</label>
+                                        <div style={{ position: 'relative' }}>
+                                            <Calendar size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
+                                            <input
+                                                type="date"
+                                                className="input" style={{ paddingLeft: '40px' }}
+                                                value={orderDetails.date}
+                                                onChange={e => setOrderDetails({ ...orderDetails, date: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="input-group" style={{ flex: 1 }}>
+                                        <label className="label">Time</label>
+                                        <div style={{ position: 'relative' }}>
+                                            <Clock size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
+                                            <input
+                                                type="time"
+                                                className="input" style={{ paddingLeft: '40px' }}
+                                                value={orderDetails.time}
+                                                onChange={e => setOrderDetails({ ...orderDetails, time: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="input-group">
+                                    <label className="label">Special Requests (Optional)</label>
+                                    <div style={{ position: 'relative' }}>
+                                        <MessageSquare size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
+                                        <textarea
+                                            className="input" style={{ paddingLeft: '40px', minHeight: '80px', resize: 'vertical' }}
+                                            value={orderDetails.notes}
+                                            onChange={e => setOrderDetails({ ...orderDetails, notes: e.target.value })}
+                                            placeholder="e.g. Extra spicy, no onions..."
+                                        />
+                                    </div>
+                                </div>
+
+                                <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '0.5rem' }}>
+                                    <div className="flex-between" style={{ marginBottom: '1rem' }}>
+                                        <span style={{ color: 'var(--text-muted)' }}>Total Amount:</span>
+                                        <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)' }}>₹{totalAmount}</span>
+                                    </div>
+                                    <button onClick={handlePayment} className="btn btn-primary" style={{ width: '100%', fontSize: '1.1rem', background: '#5f259f' }}>
+                                        Confirm & Pay with PhonePe
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
         </div>
-
-          { }
-    <div className="animate-fade-in" style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 90 }}>
-        {cartItemCount > 0 ? (
-            <button
-                className="btn btn-primary"
-                style={{ padding: '1rem 2rem', borderRadius: '50px', boxShadow: '0 10px 25px -5px rgba(139, 92, 246, 0.6)' }}
-                onClick={handleInitialCheckout}
-            >
-                <ShoppingBag size={20} /> Checkout ₹{totalAmount}
-            </button>
-        ) : (
-            <div style={{
-                background: 'var(--bg-card)',
-                padding: '1rem 2rem',
-                borderRadius: '50px',
-                border: '1px solid var(--border)',
-                color: 'var(--text-muted)',
-                boxShadow: 'var(--shadow-lg)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-            }}>
-                <ShoppingBag size={20} /> Cart Empty
-            </div>
-        )}
-    </div>
-
-    {/* Checkout Modal */ }
-
-    {
-        showCheckout && (
-            <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-                <div className="card animate-fade-in" style={{ width: '100%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto' }}>
-                    <div className="flex-between" style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
-                        <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>Delivery Details</h3>
-                        <button onClick={() => setShowCheckout(false)} className="btn btn-secondary" style={{ padding: '0.5rem' }}>
-                            <X size={20} />
-                        </button>
-                    </div>
-
-                    <div className="flex-col" style={{ gap: '1rem' }}>
-                        <div className="input-group">
-                            <label className="label">Full Name</label>
-                            <div style={{ position: 'relative' }}>
-                                <User size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
-                                <input
-                                    className="input" style={{ paddingLeft: '40px' }}
-                                    value={orderDetails.name}
-                                    onChange={e => setOrderDetails({ ...orderDetails, name: e.target.value })}
-                                    placeholder="Enter your name"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="input-group">
-                            <label className="label">Room Number</label>
-                            <div style={{ position: 'relative' }}>
-                                <MapPin size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
-                                <input
-                                    className="input" style={{ paddingLeft: '40px' }}
-                                    value={orderDetails.room}
-                                    onChange={e => setOrderDetails({ ...orderDetails, room: e.target.value })}
-                                    placeholder="e.g. A-302"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="input-group">
-                            <label className="label">Hostel Block</label>
-                            <div style={{ position: 'relative' }}>
-                                <Building size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
-                                <select
-                                    className="input"
-                                    style={{ paddingLeft: '40px', appearance: 'none' }}
-                                    value={orderDetails.hostelBlock}
-                                    onChange={e => setOrderDetails({ ...orderDetails, hostelBlock: e.target.value })}
-                                >
-                                    <option value="" disabled>Select Hostel Block</option>
-                                    <option value="Saveetha Hostels">Saveetha Hostels</option>
-                                    <option value="Annex Hostel (1st years)">Annex Hostel (1st years)</option>
-                                    <option value="Noyyal Hostel (SEC, SIMATS)">Noyyal Hostel (SEC, SIMATS)</option>
-                                    <option value="Pornai Hostel (Girls)">Pornai Hostel (Girls)</option>
-                                    <option value="Vaigai Hostel (Boys, SIMATS)">Vaigai Hostel (Boys, SIMATS)</option>
-                                    <option value="Krishna Hostel (Girls, SIMATS)">Krishna Hostel (Girls, SIMATS)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '1rem' }}>
-                            <div className="input-group" style={{ flex: 1 }}>
-                                <label className="label">Date</label>
-                                <div style={{ position: 'relative' }}>
-                                    <Calendar size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
-                                    <input
-                                        type="date"
-                                        className="input" style={{ paddingLeft: '40px' }}
-                                        value={orderDetails.date}
-                                        onChange={e => setOrderDetails({ ...orderDetails, date: e.target.value })}
-                                    />
-                                </div>
-                            </div>
-                            <div className="input-group" style={{ flex: 1 }}>
-                                <label className="label">Time</label>
-                                <div style={{ position: 'relative' }}>
-                                    <Clock size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
-                                    <input
-                                        type="time"
-                                        className="input" style={{ paddingLeft: '40px' }}
-                                        value={orderDetails.time}
-                                        onChange={e => setOrderDetails({ ...orderDetails, time: e.target.value })}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="input-group">
-                            <label className="label">Special Requests (Optional)</label>
-                            <div style={{ position: 'relative' }}>
-                                <MessageSquare size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
-                                <textarea
-                                    className="input" style={{ paddingLeft: '40px', minHeight: '80px', resize: 'vertical' }}
-                                    value={orderDetails.notes}
-                                    onChange={e => setOrderDetails({ ...orderDetails, notes: e.target.value })}
-                                    placeholder="e.g. Extra spicy, no onions..."
-                                />
-                            </div>
-                        </div>
-
-                        <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '0.5rem' }}>
-                            <div className="flex-between" style={{ marginBottom: '1rem' }}>
-                                <span style={{ color: 'var(--text-muted)' }}>Total Amount:</span>
-                                <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)' }}>₹{totalAmount}</span>
-                            </div>
-                            <button onClick={handlePayment} className="btn btn-primary" style={{ width: '100%', fontSize: '1.1rem', background: '#5f259f' }}>
-                                Confirm & Pay with PhonePe
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        )
-    }
     );
 };
 
