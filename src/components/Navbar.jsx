@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingBag, LogOut, Coffee, Shield } from 'lucide-react';
+import { ShoppingBag, LogOut, Shield } from 'lucide-react';
 
 const Navbar = ({ role }) => {
     const navigate = useNavigate();
@@ -13,7 +13,7 @@ const Navbar = ({ role }) => {
         <nav className="nav animate-fade-in">
             <div className="container nav-content">
                 <Link to={role === 'admin' ? '/admin' : '/menu'} className="nav-logo text-gradient">
-                    <Coffee size={24} />
+                    <img src="/logo.png" alt="Hostel Bites" style={{ height: '32px', width: 'auto' }} />
                     <span>Hostel Bites</span>
                     {role === 'admin' && <span className="badge badge-primary">Admin</span>}
                 </Link>

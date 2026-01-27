@@ -1,4 +1,4 @@
-Here are 3 options for your LinkedIn post. Choose the one that fits your style best!
+Here are 4 options for your LinkedIn post. Choose the one that fits your style best!
 
 ### Option 1: The "Startup Founder" Vibe (Best for engagement)
 **Headline:** Solving the Hostel Hunger Crisis, One Line of Code at a Time. 🚀
@@ -61,3 +61,28 @@ The goal? To make getting your favorite snacks as easy as sending a text.
 Testing phase begins soon. Stay tuned! 🚀
 
 #StartupLife #WebDev #HostelBites #Innovation #StudentLife
+
+---
+
+### Option 4: The "Progress Update + Teaser" (Perfect for active development)
+**Headline:** From Code to Canteen: Empowering Students with Tech! 🍔💻
+
+I’m excited to share the latest progress on **Hostel Bites**, a project close to my heart (and stomach!). We are building a streamlined food ordering platform to make hostel life easier.
+
+**🚀 Current Features Live:**
+*   **Smart Menu**: Real-time stock updates & search.
+*   **Checkout**: Seamless cart management & Razorpay integration.
+*   **Admin Dashboard**: Complete control for canteen staff to manage orders & inventory.
+*   **Global Settings**: One-tap "Open/Close" store status with delivery time estimates.
+
+**🛠️ The Tech:** React, Vite, Firebase, & CSS Modules.
+
+**👀 What’s Next?**
+This is just the MVP! I have a roadmap of exciting features that **I will add soon**, including:
+*   Real-time order tracking 📍
+*   Enhanced user profiles 👤
+*   And maybe even some AI-powered snack recommendations! 🤖
+
+Building in public has been a blast. Feedback is welcome!
+
+#BuildInPublic #ReactJS #Firebase #StudentDev #HostelLife
