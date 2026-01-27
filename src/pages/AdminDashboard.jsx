@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import Navbar from '../components/Navbar';
-import { Plus, Trash2, Image as ImageIcon, Package, ShoppingBag, CheckCircle, X, Clock, RefreshCcw } from 'lucide-react';
+import { Plus, Trash2, Image as ImageIcon, Package, ShoppingBag, CheckCircle, X, Clock, RefreshCcw, Search, History } from 'lucide-react';
 import { db } from '../lib/firebase';
 import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, orderBy, query, getDoc, setDoc } from 'firebase/firestore';
 
@@ -13,6 +13,7 @@ const AdminDashboard = () => {
     const [imageFile, setImageFile] = useState(null);
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const [storeStatus, setStoreStatus] = useState({ status: 'now', message: '' });
 
@@ -194,6 +195,12 @@ const AdminDashboard = () => {
                             <ShoppingBag size={18} /> Orders
                         </button>
                         <button
+                            className={`btn ${activeTab === 'history' ? 'btn-primary' : ''}`}
+                            onClick={() => setActiveTab('history')}
+                        >
+                            <History size={18} /> History
+                        </button>
+                        <button
                             className={`btn ${activeTab === 'items' ? 'btn-primary' : ''}`}
                             onClick={() => setActiveTab('items')}
                         >
@@ -290,11 +297,32 @@ const AdminDashboard = () => {
                             <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><ShoppingBag size={20} color="var(--primary)" /> Incoming Orders</h3>
                             <button className="btn btn-outline" onClick={fetchOrders}>Refresh Lists</button>
                         </div>
+
+                        <div style={{ position: 'relative', marginBottom: '1.5rem' }}>
+                            <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                            <input
+                                className="input"
+                                placeholder="Search by Name, Room or Phone..."
+                                style={{ paddingLeft: '3rem' }}
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+
                         {fetchLoading ? <p style={{ color: 'var(--text-muted)' }}>Loading orders...</p> : (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                                {orders.length === 0 && <p style={{ color: 'var(--text-muted)' }}>No active orders.</p>}
-                                {orders.map(order => (
-                                    <div key={order.id} className="card" style={{ padding: '1.5rem', background: 'var(--bg-card)', border: order.status === 'pending' ? '1px solid var(--accent)' : '1px solid var(--border)' }}>
+                                {orders.filter(o => o.status === 'pending').filter(order =>
+                                    order.userDetails.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                    order.userDetails.room.includes(searchQuery) ||
+                                    order.userDetails.phone.includes(searchQuery)
+                                ).length === 0 && <p style={{ color: 'var(--text-muted)' }}>No active orders found.</p>}
+
+                                {orders.filter(o => o.status === 'pending').filter(order =>
+                                    order.userDetails.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                    order.userDetails.room.includes(searchQuery) ||
+                                    order.userDetails.phone.includes(searchQuery)
+                                ).map(order => (
+                                    <div key={order.id} className="card" style={{ padding: '1.5rem', background: 'var(--bg-card)', border: '1px solid var(--accent)' }}>
                                         <div className="flex-between" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
                                             <div>
                                                 <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{order.userDetails.name} <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>({order.userDetails.room})</span></div>
@@ -323,23 +351,86 @@ const AdminDashboard = () => {
                                         </div>
 
                                         <div className="flex-between" style={{ gap: '1rem' }}>
+                                            <div className="badge" style={{ textTransform: 'uppercase', backgroundColor: 'var(--accent)', color: 'white' }}>
+                                                {order.status}
+                                            </div>
+                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                <button className="btn btn-secondary" onClick={() => updateOrderStatus(order.id, 'cancelled')} style={{ color: 'var(--danger)' }}>Cancel</button>
+                                                <button className="btn btn-primary" onClick={() => updateOrderStatus(order.id, 'completed')} style={{ background: 'var(--success)' }}>Mark Done</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {activeTab === 'history' && (
+                    <div className="card">
+                        <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
+                            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><History size={20} color="var(--primary)" /> Order History</h3>
+                            <button className="btn btn-outline" onClick={fetchOrders}>Refresh Lists</button>
+                        </div>
+
+                        <div style={{ position: 'relative', marginBottom: '1.5rem' }}>
+                            <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                            <input
+                                className="input"
+                                placeholder="Search History..."
+                                style={{ paddingLeft: '3rem' }}
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+
+                        {fetchLoading ? <p style={{ color: 'var(--text-muted)' }}>Loading history...</p> : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                                {orders.filter(o => o.status !== 'pending').filter(order =>
+                                    order.userDetails.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                    order.userDetails.room.includes(searchQuery) ||
+                                    order.userDetails.phone.includes(searchQuery)
+                                ).length === 0 && <p style={{ color: 'var(--text-muted)' }}>No past orders found.</p>}
+
+                                {orders.filter(o => o.status !== 'pending').filter(order =>
+                                    order.userDetails.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                    order.userDetails.room.includes(searchQuery) ||
+                                    order.userDetails.phone.includes(searchQuery)
+                                ).map(order => (
+                                    <div key={order.id} className="card" style={{ padding: '1.5rem', background: 'var(--bg-card)', border: '1px solid var(--border)', opacity: 0.8 }}>
+                                        <div className="flex-between" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
+                                            <div>
+                                                <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{order.userDetails.name} <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>({order.userDetails.room})</span></div>
+                                                <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{order.userDetails.phone}</div>
+                                            </div>
+                                            <div style={{ textAlign: 'right' }}>
+                                                <div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--primary)' }}>₹{order.totalAmount}</div>
+                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{new Date(order.timestamp.seconds * 1000).toLocaleString()}</div>
+                                            </div>
+                                        </div>
+
+                                        <div style={{ marginBottom: '1rem' }}>
+                                            <ul style={{ listStyle: 'none', padding: 0 }}>
+                                                {order.itemSnapshot && order.itemSnapshot.map((item, idx) => (
+                                                    <li key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0' }}>
+                                                        <span>{item.count}x {item.name}</span>
+                                                        <span style={{ color: 'var(--text-muted)' }}>₹{item.price * item.count}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+
+                                        <div className="flex-between" style={{ gap: '1rem' }}>
                                             <div className="badge" style={{
                                                 textTransform: 'uppercase',
-                                                backgroundColor: order.status === 'completed' ? 'var(--success)' : order.status === 'cancelled' ? 'var(--danger)' : 'var(--accent)',
+                                                backgroundColor: order.status === 'completed' ? 'var(--success)' : 'var(--danger)',
                                                 color: 'white'
                                             }}>
                                                 {order.status}
                                             </div>
                                             <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                                {order.status === 'pending' && (
-                                                    <>
-                                                        <button className="btn btn-secondary" onClick={() => updateOrderStatus(order.id, 'cancelled')} style={{ color: 'var(--danger)' }}>Cancel</button>
-                                                        <button className="btn btn-primary" onClick={() => updateOrderStatus(order.id, 'completed')} style={{ background: 'var(--success)' }}>Mark Done</button>
-                                                    </>
-                                                )}
-                                                {order.status === 'completed' && (
-                                                    <span style={{ color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><CheckCircle size={16} /> Completed</span>
-                                                )}
+                                                {order.status === 'completed' && <span style={{ color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><CheckCircle size={16} /> Completed</span>}
+                                                {order.status === 'cancelled' && <span style={{ color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><X size={16} /> Cancelled</span>}
                                             </div>
                                         </div>
                                     </div>
