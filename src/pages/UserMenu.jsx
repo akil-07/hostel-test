@@ -159,64 +159,65 @@ const UserMenu = () => {
             phone: orderDetails.phone
         }));
 
-        const options = {
-            key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-            amount: totalAmount * 100,
-            currency: "INR",
-            name: "Hostel Bites",
-            description: `Order for Room ${orderDetails.room}`,
-            // image: "https://your-logo-url.com/logo.png",
-            handler: async function (response) {
-                try {
-                    // Save Order to Firestore
-                    await addDoc(collection(db, "orders"), {
-                        userDetails: orderDetails,
-                        items: cart, // { itemId: count } is efficient, but we might want names too for history. 
-                        // Let's store a snapshot of items to be safe against price changes
-                        itemSnapshot: Object.entries(cart).map(([id, count]) => {
-                            const i = items.find(x => String(x.id) === String(id));
-                            return { id, name: i?.name, price: i?.price, count };
-                        }),
-                        totalAmount: totalAmount,
-                        paymentId: response.razorpay_payment_id || 'mock_id',
-                        status: 'pending', // pending, completed, delivered
-                        timestamp: new Date()
+        // Helper to process success after payment
+        const processOrderSuccess = async (paymentId) => {
+            try {
+                // Save Order to Firestore
+                await addDoc(collection(db, "orders"), {
+                    userDetails: orderDetails,
+                    items: cart,
+                    itemSnapshot: Object.entries(cart).map(([id, count]) => {
+                        const i = items.find(x => String(x.id) === String(id));
+                        return { id, name: i?.name, price: i?.price, count };
+                    }),
+                    totalAmount: totalAmount,
+                    paymentId: paymentId,
+                    status: 'pending',
+                    timestamp: new Date()
+                });
+
+                // Update Stock
+                await Promise.all(Object.entries(cart).map(async ([itemId, count]) => {
+                    const itemRef = doc(db, "items", itemId);
+                    await updateDoc(itemRef, {
+                        stock: increment(-count)
                     });
+                }));
 
-                    // Update Stock for each item
-                    await Promise.all(Object.entries(cart).map(async ([itemId, count]) => {
-                        const itemRef = doc(db, "items", itemId);
-                        await updateDoc(itemRef, {
-                            stock: increment(-count)
-                        });
-                    }));
-
-                    toast.success(`Order Placed Successfully! We will deliver to Room ${orderDetails.room} around ${orderDetails.time}.`, { duration: 5000 });
-                    setCart({});
-                    setShowCheckout(false);
-                    fetchItems(); // Refresh menu to show new stock levels
-                } catch (err) {
-                    console.error("Order save failed", err);
-                    toast.error("Payment success but failed to save order. Contact Admin.");
-                }
-            },
-            prefill: {
-                name: orderDetails.name,
-                email: "student@example.com",
-                contact: orderDetails.phone
-            },
-            theme: {
-                color: "#8b5cf6"
+                toast.success(`Order Placed Successfully! We will deliver to Room ${orderDetails.room} around ${orderDetails.time}.`, { duration: 5000 });
+                setCart({});
+                setShowCheckout(false);
+                fetchItems();
+                if (typeof fetchRecommendations === 'function') fetchRecommendations();
+            } catch (err) {
+                console.error("Order save failed", err);
+                toast.error("Payment success but failed to save order. Contact Admin.");
             }
         };
 
-        // SKIP RAZORPAY FOR TESTING
-        // const rzp1 = new window.Razorpay(options);
-        // rzp1.open();
+        // --- PHONEPE INTEGRATION CONFIGURATION ---
+        // Note: Real PhonePe integration requires a Backend (Node/Python) to salt/sign the request.
+        // Frontend-only PhonePe integration is unsafe/impossible for standard Gateway.
 
-        // Direct success simulation
-        const mockResponse = { razorpay_payment_id: "mock_test_" + Date.now() };
-        options.handler(mockResponse);
+        try {
+            const toastId = toast.loading("Connecting to PhonePe Secure Gateway...");
+
+            // SIMULATION OF BACKEND CALL & REDIRECT
+            // In a real app, you would do:
+            // const res = await fetch('/api/phonepe/init', { method: 'POST', body: JSON.stringify({ amount: totalAmount, ... }) });
+            // const data = await res.json();
+            // window.location.href = data.redirectUrl; 
+
+            // Mocking the delay and success callback
+            setTimeout(() => {
+                toast.dismiss(toastId);
+                const mockPaymentId = "PE_" + Date.now(); // 'PE' prefix for PhonePe
+                processOrderSuccess(mockPaymentId);
+            }, 2000);
+
+        } catch (error) {
+            toast.error("Failed to initiate PhonePe payment");
+        }
     };
 
     return (
@@ -350,7 +351,7 @@ const UserMenu = () => {
             )}
         </div>
 
-            {/* Always visible Floating Checkout Bar */ }
+          { }
     <div className="animate-fade-in" style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 90 }}>
         {cartItemCount > 0 ? (
             <button
@@ -483,8 +484,8 @@ const UserMenu = () => {
                                 <span style={{ color: 'var(--text-muted)' }}>Total Amount:</span>
                                 <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)' }}>₹{totalAmount}</span>
                             </div>
-                            <button onClick={handlePayment} className="btn btn-primary" style={{ width: '100%', fontSize: '1.1rem' }}>
-                                Confirm & Pay with Razorpay
+                            <button onClick={handlePayment} className="btn btn-primary" style={{ width: '100%', fontSize: '1.1rem', background: '#5f259f' }}>
+                                Confirm & Pay with PhonePe
                             </button>
                         </div>
                     </div>
