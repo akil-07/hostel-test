@@ -62,24 +62,8 @@ const UserMenu = () => {
         fetchItems();
         fetchRecommendations();
 
-        // Check for Payment Callback
-        const urlParams = new URLSearchParams(window.location.search);
-        const status = urlParams.get('status');
-        const orderId = urlParams.get('orderId');
+        // Payment Callback check removed
 
-        if (status === 'success' && orderId) {
-            toast.success("Payment Successful! Verifying order...");
-
-            // Retrieve partial order details from local storage if needed, or define a flow to recovery them
-            // For now, valid order creation logic was inside handlePayment which is lost on redirect.
-            // WE NEED TO RESTORE THE 'cart' and 'orderDetails' to save them.
-            const pendingOrder = JSON.parse(localStorage.getItem('pendingOrder') || 'null');
-
-            if (pendingOrder) {
-                processOrderSuccess(orderId, pendingOrder);
-                localStorage.removeItem('pendingOrder');
-            }
-        }
     }, []);
 
     const fetchRecommendations = async () => {
@@ -178,88 +162,51 @@ const UserMenu = () => {
             phone: orderDetails.phone
         }));
 
-        // Helper to process success after payment
-        const processOrderSuccess = async (paymentId, savedData = null) => {
-            const currentOrder = savedData ? savedData.orderDetails : orderDetails;
-            const currentCart = savedData ? savedData.cart : cart;
-            const currentTotal = savedData ? savedData.totalAmount : totalAmount;
-
-            try {
-                // Save Order to Firestore
-                await addDoc(collection(db, "orders"), {
-                    userDetails: currentOrder,
-                    items: currentCart,
-                    itemSnapshot: Object.entries(currentCart).map(([id, count]) => {
-                        // NOTE: This might be issue if items not loaded yet on refresh.
-                        // Ideally we save item snapshot in localStorage too.
-                        // However, assuming items loaded from fetchItems() which runs on mount.
-                        const i = items.find(x => String(x.id) === String(id));
-                        return { id, name: i?.name || 'Unknown Item', price: i?.price || 0, count };
-                    }),
-                    totalAmount: currentTotal,
-                    paymentId: paymentId,
-                    status: 'pending',
-                    timestamp: new Date()
-                });
-
-                // Update Stock (Skipping stock check for now on recovery to avoid complexity)
-                await Promise.all(Object.entries(currentCart).map(async ([itemId, count]) => {
-                    const itemRef = doc(db, "items", itemId);
-                    await updateDoc(itemRef, {
-                        stock: increment(-count)
-                    });
-                }));
-
-                toast.success(`Order Placed Successfully! We will deliver to Room ${currentOrder.room} around ${currentOrder.time}.`, { duration: 5000 });
-                setCart({});
-                setShowCheckout(false);
-                fetchItems();
-                if (typeof fetchRecommendations === 'function') fetchRecommendations();
-            } catch (err) {
-                console.error("Order save failed", err);
-                toast.error("Payment success but failed to save order. Contact Admin.");
-            }
-        };
-
-        // --- PHONEPE INTEGRATION (BACKEND) ---
-        // Configuration Constants
-        const PHONEPE_MERCHANT_ID = "MERC" + Date.now().toString().slice(-4);
-        const PHONEPE_SALT_INDEX = 1;
-
         try {
-            const toastId = toast.loading("Redirecting to PhonePe Secure Gateway...");
+            const orderId = "ORDER_" + Date.now();
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const userId = user.uid || "user_" + Date.now(); // Fallback if no UID
 
-            // SAVE STATE BEFORE REDIRECT
-            localStorage.setItem('pendingOrder', JSON.stringify({
-                orderDetails,
-                cart,
-                totalAmount
-            }));
+            // Prepare Item Snapshot for consistency
+            const itemSnapshot = Object.entries(cart).map(([id, count]) => {
+                const i = items.find(x => String(x.id) === String(id));
+                return { id, name: i?.name || 'Unknown Item', price: i?.price || 0, count };
+            });
 
-            // CONNECTING TO LOCAL BACKEND
-            // Ensure you are running 'node server.js' in the 'backend' folder
+            // Save Pending Data to LocalStorage (to retrieve after redirect)
+            const pendingData = {
+                userDetails: orderDetails,
+                items: cart, // { id: count }
+                itemSnapshot: itemSnapshot,
+                totalAmount: totalAmount,
+                orderId: orderId
+            };
+            localStorage.setItem('pending_order_DATA', JSON.stringify(pendingData));
+
+            // Call Backend to Initiate Payment
             const res = await fetch('http://localhost:5000/api/pay', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     amount: totalAmount,
-                    userId: orderDetails.phone,
-                    mobileNumber: orderDetails.phone,
-                    name: orderDetails.name
+                    userId: userId,
+                    orderId: orderId
                 })
             });
 
             const data = await res.json();
 
             if (data.url) {
-                // Redirect user to PhonePe Sandbox Page
+                // Redirect user to PhonePe
                 window.location.href = data.url;
             } else {
-                toast.error("Failed to init payment");
+                console.error("No redirect URL received:", data);
+                toast.error("Payment initiation failed at server.");
             }
 
         } catch (error) {
-            toast.error("Failed to initiate PhonePe payment");
+            console.error("Payment Error:", error);
+            toast.error("Failed to initiate payment. Check console.");
         }
     };
 
@@ -461,6 +408,20 @@ const UserMenu = () => {
                                 </div>
 
                                 <div className="input-group">
+                                    <label className="label">Phone Number</label>
+                                    <div style={{ position: 'relative' }}>
+                                        <User size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
+                                        <input
+                                            className="input" style={{ paddingLeft: '40px' }}
+                                            value={orderDetails.phone}
+                                            onChange={e => setOrderDetails({ ...orderDetails, phone: e.target.value })}
+                                            placeholder="Enter phone number"
+                                            type="tel"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="input-group">
                                     <label className="label">Hostel Block</label>
                                     <div style={{ position: 'relative' }}>
                                         <Building size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
@@ -527,7 +488,7 @@ const UserMenu = () => {
                                         <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)' }}>₹{totalAmount}</span>
                                     </div>
                                     <button onClick={handlePayment} className="btn btn-primary" style={{ width: '100%', fontSize: '1.1rem', background: '#5f259f' }}>
-                                        Confirm & Pay with PhonePe
+                                        Place Order
                                     </button>
                                 </div>
                             </div>

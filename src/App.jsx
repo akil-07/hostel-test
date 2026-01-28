@@ -5,6 +5,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import UserMenu from './pages/UserMenu';
 import UserOrders from './pages/UserOrders';
 import CreateAccount from './pages/CreateAccount';
+import PaymentSuccess from './pages/PaymentSuccess';
 import { Toaster } from 'react-hot-toast';
 import './App.css';
 
@@ -57,6 +58,14 @@ function App() {
           element={
             <ProtectedRoute requiredRole="user">
               <CreateAccount />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/payment-success"
+          element={
+            <ProtectedRoute requiredRole="user">
+              <PaymentSuccess />
             </ProtectedRoute>
           }
         />
