@@ -23,8 +23,9 @@ const SALT_INDEX = 1;
 // SANDBOX URL
 const PHONEPE_HOST_URL = "https://api-preprod.phonepe.com/apis/pg-sandbox";
 
-const APP_BE_URL = "http://localhost:5000"; // Our Backend URL
-const APP_FE_URL = "http://localhost:5173"; // Our Frontend URL
+// APP URLs - Use Environment Variables in Production (Render/Vercel)
+const APP_BE_URL = process.env.APP_BE_URL || "http://localhost:5000";
+const APP_FE_URL = process.env.APP_FE_URL || "http://localhost:5173";
 
 app.post('/api/pay', async (req, res) => {
     try {
