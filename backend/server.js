@@ -24,6 +24,7 @@ const SALT_INDEX = 1;
 const PHONEPE_HOST_URL = "https://api-preprod.phonepe.com/apis/pg-sandbox";
 
 // APP URLs - Use Environment Variables in Production (Render/Vercel)
+// For Mobile Testing: Use your PC's Local IP (Check via 'ipconfig')
 const APP_BE_URL = process.env.APP_BE_URL || "http://localhost:5000";
 const APP_FE_URL = process.env.APP_FE_URL || "http://localhost:5173";
 

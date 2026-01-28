@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import Navbar from '../components/Navbar';
-import { Plus, Trash2, Image as ImageIcon, Package, ShoppingBag, CheckCircle, X, Clock, RefreshCcw, Search, History } from 'lucide-react';
+import { Plus, Trash2, Image as ImageIcon, Package, ShoppingBag, CheckCircle, X, Clock, RefreshCcw, Search, History, BarChart2 } from 'lucide-react';
 import { db } from '../lib/firebase';
 import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, orderBy, query, getDoc, setDoc } from 'firebase/firestore';
 
@@ -205,6 +205,12 @@ const AdminDashboard = () => {
                             onClick={() => setActiveTab('items')}
                         >
                             <Package size={18} /> Inventory
+                        </button>
+                        <button
+                            className={`btn ${activeTab === 'analytics' ? 'btn-primary' : ''}`}
+                            onClick={() => setActiveTab('analytics')}
+                        >
+                            <BarChart2 size={18} /> Analytics
                         </button>
                     </div>
                 </div>
@@ -439,6 +445,81 @@ const AdminDashboard = () => {
                         )}
                     </div>
                 )}
+
+
+                {activeTab === 'analytics' && (
+                    <div className="animate-fade-in">
+                        {/* Stats Grid */}
+                        <div className="grid-responsive" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', marginBottom: '2rem' }}>
+                            <div className="card" style={{ textAlign: 'center', padding: '1.5rem' }}>
+                                <div style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Total Revenue</div>
+                                <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--success)' }}>
+                                    ₹{orders.filter(o => o.status === 'completed').reduce((acc, curr) => acc + (Number(curr.totalAmount) || 0), 0)}
+                                </div>
+                            </div>
+                            <div className="card" style={{ textAlign: 'center', padding: '1.5rem' }}>
+                                <div style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Total Orders</div>
+                                <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>{orders.length}</div>
+                            </div>
+                            <div className="card" style={{ textAlign: 'center', padding: '1.5rem' }}>
+                                <div style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Completed</div>
+                                <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--primary)' }}>
+                                    {orders.filter(o => o.status === 'completed').length}
+                                </div>
+                            </div>
+                            <div className="card" style={{ textAlign: 'center', padding: '1.5rem' }}>
+                                <div style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Cancelled</div>
+                                <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--danger)' }}>
+                                    {orders.filter(o => o.status === 'cancelled').length}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Top Items */}
+                        <div className="card">
+                            <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <BarChart2 size={20} color="var(--accent)" /> Top Selling Items
+                            </h3>
+                            {orders.length === 0 ? (
+                                <p style={{ color: 'var(--text-muted)' }}>No data available yet.</p>
+                            ) : (
+                                <div className="flex-col" style={{ gap: '1rem' }}>
+                                    {(() => {
+                                        const itemSales = {};
+                                        orders.filter(o => o.status === 'completed').forEach(order => {
+                                            if (order.itemSnapshot) {
+                                                order.itemSnapshot.forEach(item => {
+                                                    itemSales[item.name] = (itemSales[item.name] || 0) + item.count;
+                                                });
+                                            }
+                                        });
+                                        const topItems = Object.entries(itemSales).sort(([, a], [, b]) => b - a).slice(0, 5);
+
+                                        if (topItems.length === 0) return <p>No completed sales yet.</p>;
+
+                                        const maxVal = topItems[0][1];
+
+                                        return topItems.map(([name, count], idx) => (
+                                            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                                <div style={{ width: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: '500' }}>{name}</div>
+                                                <div style={{ flex: 1, background: 'var(--bg-body)', height: '10px', borderRadius: '5px', overflow: 'hidden' }}>
+                                                    <div style={{
+                                                        width: `${(count / maxVal) * 100}%`,
+                                                        height: '100%',
+                                                        background: 'var(--gradient-primary)',
+                                                        borderRadius: '5px'
+                                                    }} />
+                                                </div>
+                                                <div style={{ fontWeight: 'bold', width: '30px', textAlign: 'right' }}>{count}</div>
+                                            </div>
+                                        ));
+                                    })()}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
             </div>
         </div>
     );

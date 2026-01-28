@@ -25,8 +25,8 @@ const CreateAccount = () => {
         }
     }, []);
 
+
     const hostelOptions = [
-        "Saveetha Hostels",
         "Annex Hostel (1st years)",
         "Noyyal Hostel (SEC, SIMATS)",
         "Pornai Hostel (Girls)",
@@ -110,25 +110,7 @@ const CreateAccount = () => {
                         </div>
                     </div>
 
-                    {/* Hostel Block Select */}
-                    <div style={{ marginBottom: '1rem' }}>
-                        <label className="label">Hostel Block</label>
-                        <div style={{ position: 'relative' }}>
-                            <Building size={20} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
-                            <select
-                                className="input"
-                                style={{ paddingLeft: '40px', appearance: 'none' }} // simple reset for icon positioning
-                                value={formData.hostelBlock}
-                                onChange={(e) => setFormData({ ...formData, hostelBlock: e.target.value })}
-                                required
-                            >
-                                <option value="" disabled>Select your hostel</option>
-                                {hostelOptions.map((option, index) => (
-                                    <option key={index} value={option}>{option}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
+
 
                     {/* Mobile No (Read Only) */}
                     <div style={{ marginBottom: '1.5rem' }}>

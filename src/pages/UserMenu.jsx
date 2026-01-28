@@ -421,6 +421,9 @@ const UserMenu = () => {
                                     </div>
                                 </div>
 
+
+
+
                                 <div className="input-group">
                                     <label className="label">Hostel Block</label>
                                     <div style={{ position: 'relative' }}>
@@ -432,7 +435,6 @@ const UserMenu = () => {
                                             onChange={e => setOrderDetails({ ...orderDetails, hostelBlock: e.target.value })}
                                         >
                                             <option value="" disabled>Select Hostel Block</option>
-                                            <option value="Saveetha Hostels">Saveetha Hostels</option>
                                             <option value="Annex Hostel (1st years)">Annex Hostel (1st years)</option>
                                             <option value="Noyyal Hostel (SEC, SIMATS)">Noyyal Hostel (SEC, SIMATS)</option>
                                             <option value="Pornai Hostel (Girls)">Pornai Hostel (Girls)</option>
