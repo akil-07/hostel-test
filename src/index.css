@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  /* Zomato-inspired Palette */
+  /* Zomato-inspired Palette (Light Mode Default) */
   --bg-body: #ffffff;
   --bg-surface: #ffffff;
   --bg-subtle: #f8f8f8;
@@ -21,11 +21,8 @@
 
   /* Shadows */
   --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.08);
-  /* Subtle card shadow */
   --shadow-md: 0 3px 12px rgba(0, 0, 0, 0.08);
-  /* Hover state */
   --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
-  /* Modals/Floating */
 
   --radius-sm: 6px;
   --radius: 12px;
@@ -35,15 +32,40 @@
   --success: #259c48;
   --warning: #ffbe2e;
 
-  /* Compatibility / Glass */
+  /* Glass */
   --glass: rgba(255, 255, 255, 0.95);
   --glass-border: rgba(0, 0, 0, 0.05);
-  --accent: #0284c7;
-  /* Blue accent matching Zomato links */
 
   --accent: #0ea5e9;
-  --glass: rgba(255, 255, 255, 0.95);
-  --glass-border: rgba(0, 0, 0, 0.05);
+}
+
+/* Dark Mode Overrides */
+[data-theme='dark'] {
+  --bg-body: #121212;
+  --bg-surface: #1e1e1e;
+  --bg-subtle: #2d2d2d;
+
+  --primary: #ff6b6b;
+  /* Brighter red for better contrast on dark backgrounds */
+  --primary-hover: #fa5252;
+  --primary-light: #5c181d;
+  /* Significantly darker background for light variant */
+
+  --text-main: #f5f5f5;
+  --text-secondary: #d1d1d1;
+  --text-muted: #a0a0a0;
+  --text-white: #ffffff;
+  /* Keep white for buttons usually */
+
+  --border: #333333;
+  --divider: #444444;
+
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 3px 12px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.4);
+
+  --glass: rgba(30, 30, 30, 0.95);
+  --glass-border: rgba(255, 255, 255, 0.05);
 }
 
 * {
@@ -277,7 +299,7 @@ textarea.input {
 }
 
 .text-gradient {
-  background: linear-gradient(135deg, #1c1c1c, #4a4a4a);
+  background: linear-gradient(135deg, var(--text-main), var(--text-muted));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -288,7 +310,7 @@ textarea.input {
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--glass);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
   padding: 0.8rem 0;

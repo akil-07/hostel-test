@@ -7,6 +7,8 @@ import UserOrders from './pages/UserOrders';
 import CreateAccount from './pages/CreateAccount';
 import PaymentSuccess from './pages/PaymentSuccess';
 import { Toaster } from 'react-hot-toast';
+import SnackBackground from './components/SnackBackground';
+import { ThemeProvider } from './context/ThemeContext';
 import './App.css';
 
 const ProtectedRoute = ({ children, requiredRole }) => {
@@ -25,54 +27,57 @@ const ProtectedRoute = ({ children, requiredRole }) => {
 
 function App() {
   return (
-    <Router>
-      <Toaster position="top-center" toastOptions={{ duration: 4000 }} />
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/menu"
-          element={
-            <ProtectedRoute requiredRole="user">
-              <UserMenu />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/orders"
-          element={
-            <ProtectedRoute requiredRole="user">
-              <UserOrders />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/create-account"
-          element={
-            <ProtectedRoute requiredRole="user">
-              <CreateAccount />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/payment-success"
-          element={
-            <ProtectedRoute requiredRole="user">
-              <PaymentSuccess />
-            </ProtectedRoute>
-          }
-        />
-        {/* Redirect unknown routes to login */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Router>
+    <ThemeProvider>
+      <Router>
+        <SnackBackground />
+        <Toaster position="top-center" toastOptions={{ duration: 4000 }} />
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/menu"
+            element={
+              <ProtectedRoute requiredRole="user">
+                <UserMenu />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/orders"
+            element={
+              <ProtectedRoute requiredRole="user">
+                <UserOrders />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/create-account"
+            element={
+              <ProtectedRoute requiredRole="user">
+                <CreateAccount />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/payment-success"
+            element={
+              <ProtectedRoute requiredRole="user">
+                <PaymentSuccess />
+              </ProtectedRoute>
+            }
+          />
+          {/* Redirect unknown routes to login */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
+    </ThemeProvider>
   );
 }
 

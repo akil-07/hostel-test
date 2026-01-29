@@ -6,7 +6,10 @@ import { auth, db } from '../lib/firebase';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore'; // Import needed Firestore functions
 
+import ThemeToggle from '../components/ThemeToggle';
+
 const Login = () => {
+    // ... existing state ...
     const [isSignUp, setIsSignUp] = useState(false); // Toggle between Login and Sign Up
     const [isAdmin, setIsAdmin] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -17,6 +20,7 @@ const Login = () => {
 
     const navigate = useNavigate();
 
+    // ... existing useEffect ...
     useEffect(() => {
         // Auto-redirect if already logged in
         const savedUser = JSON.parse(localStorage.getItem('user'));
@@ -39,6 +43,7 @@ const Login = () => {
     }, [navigate]);
 
     const handleGoogleAuth = async (e) => {
+        // ... existing handleGoogleAuth ... 
         e.preventDefault();
         setLoading(true);
 
@@ -124,7 +129,10 @@ const Login = () => {
     };
 
     return (
-        <div className="flex-center" style={{ minHeight: '100vh', padding: '1rem' }}>
+        <div className="flex-center" style={{ minHeight: '100vh', padding: '1rem', position: 'relative' }}>
+            <div style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', zIndex: 10 }}>
+                <ThemeToggle />
+            </div>
             <div className="card animate-fade-in" style={{ width: '100%', maxWidth: '400px' }}>
                 <div className="flex-center flex-col" style={{ marginBottom: '2rem' }}>
                     <Zap size={48} color="var(--primary)" />

@@ -38,8 +38,8 @@ const PaymentSuccess = () => {
 
             try {
                 // VERIFY PAYMENT STATUS FIRST
-                const statusRes = await fetch(`http://localhost:5000/api/status/${orderId}`);
-                const statusData = await statusRes.json();
+                const res = await fetch(`http://localhost:5000/api/status/${orderId}`);
+                const statusData = await res.json();
 
                 if (statusData.code !== 'PAYMENT_SUCCESS') {
                     console.error("Payment not successful:", statusData);

@@ -257,27 +257,27 @@ const AdminDashboard = () => {
                         <h2 style={{ fontSize: '2rem', fontWeight: '800', fontStyle: 'italic', letterSpacing: '-1px' }}>Dashboard</h2>
                         <p style={{ color: 'var(--text-muted)' }}>Manage inventory & orders</p>
                     </div>
-                    <div style={{ display: 'flex', gap: '1rem', background: 'var(--bg-card)', padding: '0.5rem', borderRadius: 'var(--radius)' }}>
+                    <div style={{ display: 'flex', gap: '1rem', background: 'var(--bg-surface)', padding: '0.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
                         <button
-                            className={`btn ${activeTab === 'orders' ? 'btn-primary' : ''}`}
+                            className={`btn ${activeTab === 'orders' ? 'btn-primary' : 'btn-ghost'}`}
                             onClick={() => setActiveTab('orders')}
                         >
                             <ShoppingBag size={18} /> Orders
                         </button>
                         <button
-                            className={`btn ${activeTab === 'history' ? 'btn-primary' : ''}`}
+                            className={`btn ${activeTab === 'history' ? 'btn-primary' : 'btn-ghost'}`}
                             onClick={() => setActiveTab('history')}
                         >
                             <History size={18} /> History
                         </button>
                         <button
-                            className={`btn ${activeTab === 'items' ? 'btn-primary' : ''}`}
+                            className={`btn ${activeTab === 'items' ? 'btn-primary' : 'btn-ghost'}`}
                             onClick={() => setActiveTab('items')}
                         >
                             <Package size={18} /> Inventory
                         </button>
                         <button
-                            className={`btn ${activeTab === 'analytics' ? 'btn-primary' : ''}`}
+                            className={`btn ${activeTab === 'analytics' ? 'btn-primary' : 'btn-ghost'}`}
                             onClick={() => setActiveTab('analytics')}
                         >
                             <BarChart2 size={18} /> Analytics

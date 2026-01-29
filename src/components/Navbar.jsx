@@ -2,7 +2,10 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingBag, LogOut, Shield, UtensilsCrossed, Menu, X } from 'lucide-react';
 
+import ThemeToggle from './ThemeToggle';
+
 const Navbar = ({ role }) => {
+    // ... existing ... 
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = React.useState(false);
 
@@ -22,6 +25,10 @@ const Navbar = ({ role }) => {
                     <span>Hostel Bites</span>
                     {role === 'admin' && <span className="badge badge-primary">Admin</span>}
                 </Link>
+
+                <div className="flex-center" style={{ gap: '1rem', marginLeft: 'auto', marginRight: '1rem' }}>
+                    <ThemeToggle />
+                </div>
 
                 {/* Mobile Menu Toggle */}
                 <button className="mobile-toggle btn-ghost" onClick={toggleMenu} aria-label="Toggle menu">

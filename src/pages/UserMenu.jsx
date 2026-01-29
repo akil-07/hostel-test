@@ -184,6 +184,7 @@ const UserMenu = () => {
             localStorage.setItem('pending_order_DATA', JSON.stringify(pendingData));
 
             // Call Backend to Initiate Payment
+            // Using localhost for stability on the same machine
             const res = await fetch('http://localhost:5000/api/pay', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
