@@ -11,12 +11,15 @@ const PaymentSuccess = () => {
     const navigate = useNavigate();
     const [status, setStatus] = useState('processing'); // processing, success, fail
     const orderId = searchParams.get('id');
+    const processedRef = React.useRef(false); // IDEMPOTENCY LOCK
 
     useEffect(() => {
-        if (!orderId) {
-            setStatus('fail');
+        if (!orderId || processedRef.current) { // Check if already processed
+            if (!orderId) setStatus('fail');
             return;
         }
+
+        processedRef.current = true; // Lock immediately
 
         const handleOrderCompletion = async () => {
             const pendingOrderStr = localStorage.getItem('pending_order_DATA');
@@ -89,23 +92,23 @@ const PaymentSuccess = () => {
     }, [orderId]);
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-4">
-            <div className="card max-w-md w-full text-center p-8 space-y-6">
+        <div className="flex-center" style={{ minHeight: '100vh', padding: '1rem' }}>
+            <div className="card animate-fade-in" style={{ width: '100%', maxWidth: '450px', padding: '2rem', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 {status === 'processing' && (
-                    <div className="animate-pulse">
-                        <h2 className="text-2xl font-bold mb-2">Verifying Payment...</h2>
-                        <p className="text-muted">Please wait while we confirm your order.</p>
+                    <div className="animate-fade-in" style={{ opacity: 0.8 }}>
+                        <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Verifying Payment...</h2>
+                        <p style={{ color: 'var(--text-muted)' }}>Please wait while we confirm your order.</p>
                     </div>
                 )}
 
                 {status === 'success' && (
                     <div className="animate-fade-in">
-                        <div className="flex justify-center mb-4">
-                            <CheckCircle size={64} className="text-green-500" />
+                        <div className="flex-center" style={{ marginBottom: '1rem' }}>
+                            <CheckCircle size={64} style={{ color: 'var(--success)' }} />
                         </div>
-                        <h2 className="text-2xl font-bold mb-2">Payment Successful!</h2>
-                        <p className="text-muted mb-6">Your order has been placed. Redirecting to your orders...</p>
-                        <div className="flex gap-4 justify-center">
+                        <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Payment Successful!</h2>
+                        <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>Your order has been placed successfully.</p>
+                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
                             <button onClick={() => navigate('/menu')} className="btn btn-primary">Order More</button>
                             <button onClick={() => navigate('/orders')} className="btn btn-outline">View Orders</button>
                         </div>
@@ -114,16 +117,16 @@ const PaymentSuccess = () => {
 
                 {status === 'fail' && (
                     <div className="animate-fade-in">
-                        <div className="flex justify-center mb-4">
-                            <XCircle size={64} className="text-red-500" />
+                        <div className="flex-center" style={{ marginBottom: '1rem' }}>
+                            <XCircle size={64} style={{ color: 'var(--danger)' }} />
                         </div>
-                        <h2 className="text-2xl font-bold mb-2">Order Failed</h2>
-                        <p className="text-muted mb-6">Something went wrong while processing your order info.</p>
+                        <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Order Failed</h2>
+                        <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>Something went wrong while processing your order info.</p>
 
                         {/* RECOVERY OPTION */}
-                        <div className="bg-gray-800 p-4 rounded mb-4 text-left">
-                            <p className="text-sm font-bold mb-2 text-warning">Wait! Did you just pay?</p>
-                            <p className="text-xs text-muted mb-2">If money was deducted but you see this, we can check the server directly.</p>
+                        <div style={{ background: '#f9f9f9', padding: '1rem', borderRadius: 'var(--radius)', marginBottom: '1.5rem', textAlign: 'left', border: '1px solid var(--border)' }}>
+                            <p style={{ fontSize: '0.9rem', fontWeight: 'bold', marginBottom: '0.5rem', color: 'var(--warning)' }}>Wait! Did you just pay?</p>
+                            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>If money was deducted but you see this, we can check the server directly.</p>
                             <button
                                 onClick={async () => {
                                     try {
@@ -143,13 +146,14 @@ const PaymentSuccess = () => {
                                         toast.error("Could not verify status.");
                                     }
                                 }}
-                                className="btn btn-outline btn-sm w-full"
+                                className="btn btn-outline btn-sm"
+                                style={{ width: '100%' }}
                             >
                                 Verify Status on Server
                             </button>
                         </div>
 
-                        <button onClick={() => navigate('/menu')} className="btn btn-primary">Back to Menu</button>
+                        <button onClick={() => navigate('/menu')} className="btn btn-primary" style={{ width: '100%' }}>Back to Menu</button>
                     </div>
                 )}
             </div>

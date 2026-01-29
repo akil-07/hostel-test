@@ -128,20 +128,20 @@ const Login = () => {
             <div className="card animate-fade-in" style={{ width: '100%', maxWidth: '400px' }}>
                 <div className="flex-center flex-col" style={{ marginBottom: '2rem' }}>
                     <Zap size={48} color="var(--primary)" />
-                    <h1 className="text-gradient" style={{ fontSize: '2rem', fontWeight: 'bold' }}>Hostel Bites</h1>
-                    <p style={{ color: 'var(--text-muted)' }}>Premium Food & Snacks</p>
+                    <h1 style={{ fontSize: '2.5rem', fontWeight: '800', fontStyle: 'italic', letterSpacing: '-1px', color: 'var(--text-main)', marginBottom: '0.5rem' }}>Hostel Bites</h1>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>Premium Food & Snacks</p>
                 </div>
 
                 {/* Login / Sign Up Tabs */}
                 <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', marginBottom: '1.5rem' }}>
                     <button
-                        style={{ flex: 1, padding: '1rem', borderBottom: !isSignUp ? '2px solid var(--primary)' : 'none', fontWeight: !isSignUp ? 'bold' : 'normal', color: !isSignUp ? 'var(--text-main)' : 'var(--text-muted)', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                        style={{ flex: 1, padding: '1rem', borderBottom: !isSignUp ? '3px solid var(--primary)' : '1px solid var(--border)', fontWeight: !isSignUp ? 'bold' : '500', color: !isSignUp ? 'var(--primary)' : 'var(--text-muted)', background: 'transparent', cursor: 'pointer', transition: 'all 0.2s' }}
                         onClick={() => setIsSignUp(false)}
                     >
                         Login
                     </button>
                     <button
-                        style={{ flex: 1, padding: '1rem', borderBottom: isSignUp ? '2px solid var(--primary)' : 'none', fontWeight: isSignUp ? 'bold' : 'normal', color: isSignUp ? 'var(--text-main)' : 'var(--text-muted)', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                        style={{ flex: 1, padding: '1rem', borderBottom: isSignUp ? '3px solid var(--primary)' : '1px solid var(--border)', fontWeight: isSignUp ? 'bold' : '500', color: isSignUp ? 'var(--primary)' : 'var(--text-muted)', background: 'transparent', cursor: 'pointer', transition: 'all 0.2s' }}
                         onClick={() => setIsSignUp(true)}
                     >
                         Create Account

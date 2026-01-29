@@ -217,8 +217,8 @@ const UserMenu = () => {
 
                 <div className="flex-between" style={{ marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
                     <div>
-                        <h2 className="text-gradient" style={{ fontSize: '2rem', fontWeight: 'bold' }}>Menu</h2>
-                        <p style={{ color: 'var(--text-muted)' }}>Order your favorites instantly</p>
+                        <h2 style={{ fontSize: '2rem', fontWeight: '800', fontStyle: 'italic', letterSpacing: '-1px' }}>Menu</h2>
+                        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>Order your favorites instantly</p>
                     </div>
 
                     {/* Status Banner */}
@@ -300,7 +300,7 @@ const UserMenu = () => {
                 <div className="grid-responsive">
                     {filteredItems.length === 0 && <p style={{ color: 'var(--text-muted)' }}>No items found in stock.</p>}
                     {filteredItems.map(item => (
-                        <div key={item.id} className="card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                        <div key={item.id} className="card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', border: 'none', boxShadow: 'var(--shadow-sm)' }}>
                             <div style={{ height: '200px', overflow: 'hidden' }}>
                                 <img
                                     src={item.image}
@@ -313,9 +313,11 @@ const UserMenu = () => {
                             <div style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
                                 <div className="flex-between" style={{ marginBottom: '0.5rem' }}>
                                     <h3 style={{ fontWeight: 600 }}>{item.name}</h3>
-                                    {item.category && <span className="badge badge-primary">{item.category}</span>}
+                                    {item.category && <span className="badge badge-secondary" style={{ fontSize: '0.7rem' }}>{item.category}</span>}
                                 </div>
-                                <p style={{ color: 'var(--accent)', fontWeight: 'bold', fontSize: '1.2rem', marginBottom: '1rem' }}>₹{item.price}</p>
+                                <div className="flex-between" style={{ marginBottom: '1rem', alignItems: 'flex-end' }}>
+                                    <p style={{ color: 'var(--text-main)', fontWeight: 'bold', fontSize: '1.1rem' }}>₹{item.price}</p>
+                                </div>
 
                                 <div style={{ marginTop: 'auto' }}>
                                     {item.stock <= 0 ? (
@@ -327,7 +329,7 @@ const UserMenu = () => {
                                             Add to Cart
                                         </button>
                                     ) : (
-                                        <div className="flex-between" style={{ background: 'var(--bg-card-hover)', borderRadius: 'var(--radius)', padding: '0.25rem' }}>
+                                        <div className="flex-between" style={{ background: 'var(--bg-main)', borderRadius: 'var(--radius-sm)', padding: '0.25rem', border: '1px solid var(--border)' }}>
                                             <button className="btn" onClick={() => removeFromCart(item.id)}><Minus size={16} /></button>
                                             <span style={{ fontWeight: 600 }}>{getItemCount(item.id)}</span>
                                             <button className="btn" onClick={() => addToCart(item.id)} disabled={getItemCount(item.id) >= item.stock}><Plus size={16} /></button>
@@ -371,8 +373,8 @@ const UserMenu = () => {
 
             {
                 showCheckout && (
-                    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-                        <div className="card animate-fade-in" style={{ width: '100%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto' }}>
+                    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+                        <div className="card animate-fade-in" style={{ width: '100%', maxWidth: '420px', maxHeight: '85vh', overflowY: 'auto', padding: '2rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
                             <div className="flex-between" style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
                                 <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>Delivery Details</h3>
                                 <button onClick={() => setShowCheckout(false)} className="btn btn-secondary" style={{ padding: '0.5rem' }}>
@@ -384,9 +386,9 @@ const UserMenu = () => {
                                 <div className="input-group">
                                     <label className="label">Full Name</label>
                                     <div style={{ position: 'relative' }}>
-                                        <User size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
+                                        <User size={20} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                                         <input
-                                            className="input" style={{ paddingLeft: '40px' }}
+                                            className="input" style={{ paddingLeft: '45px' }}
                                             value={orderDetails.name}
                                             onChange={e => setOrderDetails({ ...orderDetails, name: e.target.value })}
                                             placeholder="Enter your name"
@@ -397,9 +399,9 @@ const UserMenu = () => {
                                 <div className="input-group">
                                     <label className="label">Room Number</label>
                                     <div style={{ position: 'relative' }}>
-                                        <MapPin size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
+                                        <MapPin size={20} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                                         <input
-                                            className="input" style={{ paddingLeft: '40px' }}
+                                            className="input" style={{ paddingLeft: '45px' }}
                                             value={orderDetails.room}
                                             onChange={e => setOrderDetails({ ...orderDetails, room: e.target.value })}
                                             placeholder="e.g. A-302"
@@ -410,9 +412,9 @@ const UserMenu = () => {
                                 <div className="input-group">
                                     <label className="label">Phone Number</label>
                                     <div style={{ position: 'relative' }}>
-                                        <User size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
+                                        <User size={20} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                                         <input
-                                            className="input" style={{ paddingLeft: '40px' }}
+                                            className="input" style={{ paddingLeft: '45px' }}
                                             value={orderDetails.phone}
                                             onChange={e => setOrderDetails({ ...orderDetails, phone: e.target.value })}
                                             placeholder="Enter phone number"
@@ -422,15 +424,13 @@ const UserMenu = () => {
                                 </div>
 
 
-
-
                                 <div className="input-group">
                                     <label className="label">Hostel Block</label>
                                     <div style={{ position: 'relative' }}>
-                                        <Building size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
+                                        <Building size={20} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                                         <select
                                             className="input"
-                                            style={{ paddingLeft: '40px', appearance: 'none' }}
+                                            style={{ paddingLeft: '45px', appearance: 'none', background: 'white' }}
                                             value={orderDetails.hostelBlock}
                                             onChange={e => setOrderDetails({ ...orderDetails, hostelBlock: e.target.value })}
                                         >
@@ -448,10 +448,10 @@ const UserMenu = () => {
                                     <div className="input-group" style={{ flex: 1 }}>
                                         <label className="label">Date</label>
                                         <div style={{ position: 'relative' }}>
-                                            <Calendar size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
+                                            <Calendar size={20} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                                             <input
                                                 type="date"
-                                                className="input" style={{ paddingLeft: '40px' }}
+                                                className="input" style={{ paddingLeft: '45px' }}
                                                 value={orderDetails.date}
                                                 onChange={e => setOrderDetails({ ...orderDetails, date: e.target.value })}
                                             />
@@ -460,10 +460,10 @@ const UserMenu = () => {
                                     <div className="input-group" style={{ flex: 1 }}>
                                         <label className="label">Time</label>
                                         <div style={{ position: 'relative' }}>
-                                            <Clock size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
+                                            <Clock size={20} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                                             <input
                                                 type="time"
-                                                className="input" style={{ paddingLeft: '40px' }}
+                                                className="input" style={{ paddingLeft: '45px' }}
                                                 value={orderDetails.time}
                                                 onChange={e => setOrderDetails({ ...orderDetails, time: e.target.value })}
                                             />
@@ -474,9 +474,9 @@ const UserMenu = () => {
                                 <div className="input-group">
                                     <label className="label">Special Requests (Optional)</label>
                                     <div style={{ position: 'relative' }}>
-                                        <MessageSquare size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
+                                        <MessageSquare size={20} style={{ position: 'absolute', left: '12px', top: '15px', color: 'var(--text-muted)' }} />
                                         <textarea
-                                            className="input" style={{ paddingLeft: '40px', minHeight: '80px', resize: 'vertical' }}
+                                            className="input" style={{ paddingLeft: '45px', minHeight: '80px', resize: 'vertical' }}
                                             value={orderDetails.notes}
                                             onChange={e => setOrderDetails({ ...orderDetails, notes: e.target.value })}
                                             placeholder="e.g. Extra spicy, no onions..."
@@ -489,9 +489,22 @@ const UserMenu = () => {
                                         <span style={{ color: 'var(--text-muted)' }}>Total Amount:</span>
                                         <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)' }}>₹{totalAmount}</span>
                                     </div>
-                                    <button onClick={handlePayment} className="btn btn-primary" style={{ width: '100%', fontSize: '1.1rem', background: '#5f259f' }}>
-                                        Place Order
-                                    </button>
+                                    <div style={{ display: 'flex', gap: '1rem' }}>
+                                        <button
+                                            onClick={() => setShowCheckout(false)}
+                                            className="btn btn-secondary"
+                                            style={{ flex: 1, fontSize: '1.1rem', borderColor: 'var(--border)' }}
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={handlePayment}
+                                            className="btn btn-primary"
+                                            style={{ flex: 2, fontSize: '1.1rem', background: '#5f259f' }}
+                                        >
+                                            Place Order
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

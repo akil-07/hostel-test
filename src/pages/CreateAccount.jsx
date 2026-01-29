@@ -68,7 +68,7 @@ const CreateAccount = () => {
     };
 
     return (
-        <div className="flex-center" style={{ minHeight: '100vh', padding: '1rem', backgroundColor: '#f8f9fa' }}>
+        <div className="flex-center" style={{ minHeight: '100vh', padding: '1rem', backgroundColor: 'var(--bg-main)' }}>
             <div className="card animate-fade-in" style={{ width: '100%', maxWidth: '400px' }}>
                 <div className="flex-center flex-col" style={{ marginBottom: '2rem' }}>
                     <h1 className="text-gradient" style={{ fontSize: '2rem', fontWeight: 'bold' }}>Create Account</h1>

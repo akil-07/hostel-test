@@ -12,6 +12,7 @@ const AdminDashboard = () => {
     const [newItem, setNewItem] = useState({ name: '', price: '', stock: '' });
     const [imageFile, setImageFile] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [deleteLoading, setDeleteLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -177,6 +178,75 @@ const AdminDashboard = () => {
         }
     };
 
+    const archiveOrder = async (orderId) => {
+        if (!window.confirm("Remove from history view? (Revenue stats will remain)")) return;
+        try {
+            await updateDoc(doc(db, "orders", orderId), {
+                archived: true
+            });
+            // Update local state to reflect archived status
+            setOrders(orders.map(o => o.id === orderId ? { ...o, archived: true } : o));
+            toast.success("Order removed from history");
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to archive order");
+        }
+    };
+
+    const archiveAllHistory = async () => {
+        // Filter orders that are completed/cancelled AND NOT ALREADY archived
+        const historyOrders = orders.filter(o => o.status !== 'pending' && !o.archived);
+
+        if (historyOrders.length === 0) {
+            toast.error("No history to clear");
+            return;
+        }
+
+        if (!window.confirm(`Hide ALL ${historyOrders.length} past orders from this view? (Revenue stats will remain)`)) return;
+
+        setLoading(true);
+        try {
+            // Use Promise.all to update all docs in parallel
+            await Promise.all(historyOrders.map(o => updateDoc(doc(db, "orders", o.id), { archived: true })));
+
+            // Update local state
+            setOrders(orders.map(o =>
+                (o.status !== 'pending' && !o.archived) ? { ...o, archived: true } : o
+            ));
+
+            toast.success("All history cleared from view!");
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to archive history");
+        }
+        setLoading(false);
+    };
+
+    const restoreOrder = async (orderId) => {
+        try {
+            await updateDoc(doc(db, "orders", orderId), {
+                archived: false
+            });
+            setOrders(orders.map(o => o.id === orderId ? { ...o, archived: false } : o));
+            toast.success("Order restored to history");
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to restore order");
+        }
+    };
+
+    const deletePermanent = async (orderId) => {
+        if (!window.confirm("PERMANENTLY DELETE this order? This will reduce revenue.")) return;
+        try {
+            await deleteDoc(doc(db, "orders", orderId));
+            setOrders(orders.filter(o => o.id !== orderId));
+            toast.success("Order deleted forever");
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to delete order");
+        }
+    };
+
     return (
         <div className="min-h-screen">
             <Navbar role="admin" />
@@ -184,7 +254,7 @@ const AdminDashboard = () => {
 
                 <div className="flex-between" style={{ marginBottom: '2rem' }}>
                     <div>
-                        <h2 className="text-gradient" style={{ fontSize: '2rem', fontWeight: 'bold' }}>Dashboard</h2>
+                        <h2 style={{ fontSize: '2rem', fontWeight: '800', fontStyle: 'italic', letterSpacing: '-1px' }}>Dashboard</h2>
                         <p style={{ color: 'var(--text-muted)' }}>Manage inventory & orders</p>
                     </div>
                     <div style={{ display: 'flex', gap: '1rem', background: 'var(--bg-card)', padding: '0.5rem', borderRadius: 'var(--radius)' }}>
@@ -376,7 +446,10 @@ const AdminDashboard = () => {
                     <div className="card">
                         <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
                             <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><History size={20} color="var(--primary)" /> Order History</h3>
-                            <button className="btn btn-outline" onClick={fetchOrders}>Refresh Lists</button>
+                            <div style={{ display: 'flex', gap: '1rem' }}>
+                                <button className="btn btn-outline" onClick={fetchOrders}>Refresh</button>
+                                <button className="btn btn-danger" onClick={archiveAllHistory}>Clear All</button>
+                            </div>
                         </div>
 
                         <div style={{ position: 'relative', marginBottom: '1.5rem' }}>
@@ -392,13 +465,13 @@ const AdminDashboard = () => {
 
                         {fetchLoading ? <p style={{ color: 'var(--text-muted)' }}>Loading history...</p> : (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                                {orders.filter(o => o.status !== 'pending').filter(order =>
+                                {orders.filter(o => o.status !== 'pending' && !o.archived).filter(order =>
                                     order.userDetails.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                                     order.userDetails.room.includes(searchQuery) ||
                                     order.userDetails.phone.includes(searchQuery)
                                 ).length === 0 && <p style={{ color: 'var(--text-muted)' }}>No past orders found.</p>}
 
-                                {orders.filter(o => o.status !== 'pending').filter(order =>
+                                {orders.filter(o => o.status !== 'pending' && !o.archived).filter(order =>
                                     order.userDetails.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                                     order.userDetails.room.includes(searchQuery) ||
                                     order.userDetails.phone.includes(searchQuery)
@@ -434,9 +507,12 @@ const AdminDashboard = () => {
                                             }}>
                                                 {order.status}
                                             </div>
-                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                                                 {order.status === 'completed' && <span style={{ color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><CheckCircle size={16} /> Completed</span>}
                                                 {order.status === 'cancelled' && <span style={{ color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><X size={16} /> Cancelled</span>}
+                                                <button onClick={() => archiveOrder(order.id)} className="btn btn-outline" style={{ border: 'none', color: 'var(--text-muted)' }} title="Remove from View">
+                                                    <Trash2 size={16} />
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -517,11 +593,65 @@ const AdminDashboard = () => {
                                 </div>
                             )}
                         </div>
+
+
+                        {/* Data Management */}
+                        <div className="card" style={{ marginTop: '2rem', border: '1px solid var(--danger)' }}>
+                            <h3 style={{ marginBottom: '1rem', color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <Trash2 size={20} /> Archived Orders (Data Management)
+                            </h3>
+                            <p style={{ color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                                These orders are hidden from the main History tab but still count towards your Total Revenue.
+                                <br />You can <strong>Restore</strong> them to history or <strong>Permanently Delete</strong> them (which removes revenue).
+                            </p>
+
+                            {orders.filter(o => o.archived).length === 0 ? (
+                                <p style={{ fontStyle: 'italic', opacity: 0.7 }}>No archived orders found.</p>
+                            ) : (
+                                <div className="flex-col" style={{ gap: '0.5rem' }}>
+                                    <div className="flex-between" style={{ padding: '0.5rem', borderBottom: '1px solid var(--border)', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                                        <div style={{ flex: 1 }}>Date</div>
+                                        <div style={{ flex: 1 }}>User</div>
+                                        <div style={{ flex: 1, textAlign: 'right' }}>Amount</div>
+                                        <div style={{ width: '150px', textAlign: 'right' }}>Actions</div>
+                                    </div>
+                                    {orders.filter(o => o.archived).sort((a, b) => b.timestamp.seconds - a.timestamp.seconds).map(order => (
+                                        <div key={order.id} className="flex-between" style={{ padding: '0.75rem', background: 'var(--bg-body)', borderRadius: '4px' }}>
+                                            <div style={{ flex: 1, fontSize: '0.9rem' }}>
+                                                {new Date(order.timestamp.seconds * 1000).toLocaleDateString()}
+                                            </div>
+                                            <div style={{ flex: 1, fontWeight: '500' }}>
+                                                {order.userDetails.name}
+                                            </div>
+                                            <div style={{ flex: 1, textAlign: 'right', fontWeight: 'bold' }}>
+                                                ₹{order.totalAmount}
+                                            </div>
+                                            <div style={{ width: '150px', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                                                <button
+                                                    onClick={() => restoreOrder(order.id)}
+                                                    className="btn btn-outline btn-sm"
+                                                    title="Restore to History"
+                                                >
+                                                    <History size={14} />
+                                                </button>
+                                                <button
+                                                    onClick={() => deletePermanent(order.id)}
+                                                    className="btn btn-danger btn-sm"
+                                                    title="Delete Forever"
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
 
             </div>
-        </div>
+        </div >
     );
 };
 

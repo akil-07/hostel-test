@@ -65,7 +65,7 @@ const UserOrders = () => {
         <div className="min-h-screen">
             <Navbar role="user" />
             <div className="container" style={{ padding: '2rem 0' }}>
-                <h2 className="text-gradient" style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1.5rem' }}>
+                <h2 style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '1.5rem', letterSpacing: '-0.5px' }}>
                     My Orders
                 </h2>
 
@@ -92,7 +92,7 @@ const UserOrders = () => {
                                         <div style={{ fontWeight: 'bold' }}>Reference: {order.paymentId.slice(-6).toUpperCase()}</div>
                                     </div>
                                     <div className="badge" style={{
-                                        backgroundColor: `rgba(var(--bg-card), 0)`,
+                                        backgroundColor: 'transparent',
                                         border: `1px solid ${getStatusColor(order.status)}`,
                                         color: getStatusColor(order.status),
                                         display: 'flex', alignItems: 'center', gap: '0.5rem'
@@ -113,7 +113,7 @@ const UserOrders = () => {
 
                                 <div className="flex-between" style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                                     <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-                                        Deliver to: <span style={{ color: 'var(--text-main)' }}>{order.userDetails.room}</span> ({order.userDetails.time})
+                                        Deliver to: <span style={{ color: 'var(--text-main)' }}>{order.userDetails.hostelBlock}, {order.userDetails.room}</span> ({order.userDetails.time})
                                     </div>
                                     <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--primary)' }}>
                                         Total: ₹{order.totalAmount}
