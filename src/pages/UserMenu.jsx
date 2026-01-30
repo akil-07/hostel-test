@@ -221,10 +221,11 @@ const UserMenu = () => {
 
             // Call Backend to Initiate Payment
             // Dynamic Backend URL based on current hostname
-            const protocol = window.location.protocol;
-            const hostname = window.location.hostname;
-            const port = 5000; // Backend is always on 5000
-            const backendUrl = `${protocol}//${hostname}:${port}`;
+            // const protocol = window.location.protocol;
+            // const hostname = window.location.hostname;
+            // const port = 5000; // Backend is always on 5000
+            // const backendUrl = `${protocol}//${hostname}:${port}`;
+            const backendUrl = "http://localhost:5000";
 
             const res = await fetch(`${backendUrl}/api/pay`, {
                 method: 'POST',
