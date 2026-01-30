@@ -5,10 +5,14 @@ import { db } from '../lib/firebase';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 
 const UserOrders = () => {
+    const [activeTab, setActiveTab] = useState('active'); // 'active' or 'history'
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [hiddenOrders, setHiddenOrders] = useState([]);
 
     useEffect(() => {
+        const storedHidden = JSON.parse(localStorage.getItem('hiddenOrders') || '[]');
+        setHiddenOrders(storedHidden);
         fetchOrders();
     }, []);
 
@@ -22,9 +26,6 @@ const UserOrders = () => {
         }
 
         try {
-            // In a real app, complex queries need indexes. 
-            // For now, we'll fetch then filter or use basic filtration if index exists
-            // Let's try simple client side filtering if dataset is small, or simple where clause
             const q = query(
                 collection(db, "orders"),
                 where("userDetails.phone", "==", user.phone)
@@ -36,9 +37,7 @@ const UserOrders = () => {
                 ...doc.data()
             }));
 
-            // Sort by date manually since composite index might not be ready
             ordersList.sort((a, b) => b.timestamp.seconds - a.timestamp.seconds);
-
             setOrders(ordersList);
         } catch (error) {
             console.error("Error fetching orders: ", error);
@@ -46,11 +45,23 @@ const UserOrders = () => {
         setLoading(false);
     };
 
+    const handleClearHistory = () => {
+        if (!window.confirm("Are you sure you want to clear your order history? This will hide them from your view.")) return;
+
+        const historyIds = historyOrders.map(o => o.id);
+        const newHidden = [...hiddenOrders, ...historyIds];
+        localStorage.setItem('hiddenOrders', JSON.stringify(newHidden));
+        setHiddenOrders(newHidden);
+    };
+
     const getStatusColor = (status) => {
         switch (status) {
-            case 'pending': return 'var(--accent)'; // Blue/Cyan
-            case 'completed': return 'var(--success)'; // Green
-            case 'cancelled': return 'var(--danger)'; // Red
+            case 'pending':
+            case 'preparing':
+            case 'accepted':
+            case 'ready': return 'var(--accent)';
+            case 'completed': return 'var(--success)';
+            case 'cancelled': return 'var(--danger)';
             default: return 'var(--text-muted)';
         }
     };
@@ -61,26 +72,75 @@ const UserOrders = () => {
         return <Clock size={18} color="var(--accent)" />;
     };
 
+    // Filter Logic
+    const visibleOrders = orders.filter(o => !hiddenOrders.includes(o.id));
+    const activeOrders = visibleOrders.filter(o => ['pending', 'preparing', 'accepted', 'ready'].includes(o.status));
+    const historyOrders = visibleOrders.filter(o => ['completed', 'cancelled', 'rejected'].includes(o.status));
+
+    const displayedOrders = activeTab === 'active' ? activeOrders : historyOrders;
+
     return (
         <div className="min-h-screen">
             <Navbar role="user" />
             <div className="container" style={{ padding: '2rem 0' }}>
-                <h2 style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '1.5rem', letterSpacing: '-0.5px' }}>
-                    My Orders
-                </h2>
+                <div className="flex-between" style={{ marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+                    <h2 style={{ fontSize: '2rem', fontWeight: '800', letterSpacing: '-0.5px' }}>
+                        My Orders
+                    </h2>
+
+                    {/* Tabs */}
+                    <div style={{ background: 'var(--bg-card)', padding: '0.25rem', borderRadius: '50px', border: '1px solid var(--border)', display: 'flex' }}>
+                        <button
+                            onClick={() => setActiveTab('active')}
+                            style={{
+                                padding: '0.5rem 1.5rem',
+                                borderRadius: '50px',
+                                fontWeight: '600',
+                                background: activeTab === 'active' ? 'var(--primary)' : 'transparent',
+                                color: activeTab === 'active' ? 'white' : 'var(--text-muted)',
+                                transition: 'all 0.3s'
+                            }}
+                        >
+                            Active ({activeOrders.length})
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('history')}
+                            style={{
+                                padding: '0.5rem 1.5rem',
+                                borderRadius: '50px',
+                                fontWeight: '600',
+                                background: activeTab === 'history' ? 'var(--primary)' : 'transparent',
+                                color: activeTab === 'history' ? 'white' : 'var(--text-muted)',
+                                transition: 'all 0.3s'
+                            }}
+                        >
+                            History
+                        </button>
+                    </div>
+                </div>
+
+                {activeTab === 'history' && historyOrders.length > 0 && (
+                    <div style={{ textAlign: 'right', marginBottom: '1rem' }}>
+                        <button onClick={handleClearHistory} className="btn btn-sm btn-outline" style={{ borderColor: 'var(--border)', color: 'var(--text-muted)' }}>
+                            Clean History
+                        </button>
+                    </div>
+                )}
 
                 {loading ? (
                     <p style={{ color: 'var(--text-muted)' }}>Loading orders...</p>
-                ) : orders.length === 0 ? (
+                ) : displayedOrders.length === 0 ? (
                     <div className="card" style={{ padding: '3rem', textAlign: 'center' }}>
                         <Package size={48} color="var(--text-muted)" style={{ marginBottom: '1rem' }} />
-                        <h3>No orders yet</h3>
-                        <p style={{ color: 'var(--text-muted)' }}>Hungry? Go to the menu and grab a bite!</p>
+                        <h3>No {activeTab} orders</h3>
+                        <p style={{ color: 'var(--text-muted)' }}>
+                            {activeTab === 'active' ? "Order something from the menu!" : "Your order history is clean."}
+                        </p>
                     </div>
                 ) : (
                     <div className="flex-col" style={{ gap: '1.5rem' }}>
-                        {orders.map(order => (
-                            <div key={order.id} className="card animate-fade-in" style={{ padding: '1.5rem' }}>
+                        {displayedOrders.map(order => (
+                            <div key={order.id} className="card animate-fade-in" style={{ padding: '1.5rem', borderLeft: `4px solid ${getStatusColor(order.status)}` }}>
                                 <div className="flex-between" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                                     <div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
@@ -89,7 +149,7 @@ const UserOrders = () => {
                                                 {new Date(order.timestamp.seconds * 1000).toLocaleString()}
                                             </span>
                                         </div>
-                                        <div style={{ fontWeight: 'bold' }}>Reference: {order.paymentId.slice(-6).toUpperCase()}</div>
+                                        <div style={{ fontWeight: 'bold' }}>Reference: {order.paymentId ? order.paymentId.slice(-6).toUpperCase() : 'N/A'}</div>
                                     </div>
                                     <div className="badge" style={{
                                         backgroundColor: 'transparent',

@@ -37,14 +37,18 @@ app.post('/api/pay', async (req, res) => {
         }
 
         // 1. Create Payload
+        // DYNAMICALLY DETERMINE FRONTEND URL FROM REQUEST ORIGIN
+        const clientOrigin = req.headers.origin || "http://localhost:5173";
+        const backendUrl = process.env.APP_BE_URL || `http://${req.hostname}:5000`; // Best guess for backend
+
         const payload = {
             merchantId: MERCHANT_ID,
             merchantTransactionId: orderId,
             merchantUserId: userId,
             amount: amount * 100, // Amount in paise
-            redirectUrl: `${APP_FE_URL}/payment-success?id=${orderId}`,
+            redirectUrl: `${clientOrigin}/payment-success?id=${orderId}`,
             redirectMode: "REDIRECT",
-            callbackUrl: `${APP_BE_URL}/api/callback`,
+            callbackUrl: `${backendUrl}/api/callback`,
             paymentInstrument: {
                 type: "PAY_PAGE"
             }

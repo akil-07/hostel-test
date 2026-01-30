@@ -38,7 +38,9 @@ const PaymentSuccess = () => {
 
             try {
                 // VERIFY PAYMENT STATUS FIRST
-                const res = await fetch(`http://localhost:5000/api/status/${orderId}`);
+                const hostname = window.location.hostname;
+                const backendUrl = `http://${hostname}:5000`;
+                const res = await fetch(`${backendUrl}/api/status/${orderId}`);
                 const statusData = await res.json();
 
                 if (statusData.code !== 'PAYMENT_SUCCESS') {
@@ -59,11 +61,12 @@ const PaymentSuccess = () => {
                     timestamp: new Date()
                 });
 
-                // Update Stock
+                // Update Stock and Sales Count
                 await Promise.all(Object.entries(pendingData.items).map(async ([itemId, count]) => {
                     const itemRef = doc(db, "items", itemId);
                     await updateDoc(itemRef, {
-                        stock: increment(-count)
+                        stock: increment(-count),
+                        sales: increment(count) // Increment Sales Count
                     });
                 }));
 
