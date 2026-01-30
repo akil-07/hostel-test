@@ -4,6 +4,7 @@
   /* Zomato-inspired Palette (Light Mode Default) */
   --bg-body: #ffffff;
   --bg-surface: #ffffff;
+  --bg-card: #ffffff;
   --bg-subtle: #f8f8f8;
 
   --primary: #e23744;
@@ -43,6 +44,7 @@
 [data-theme='dark'] {
   --bg-body: #121212;
   --bg-surface: #1e1e1e;
+  --bg-card: #1e1e1e;
   --bg-subtle: #2d2d2d;
 
   --primary: #ff6b6b;
@@ -66,6 +68,12 @@
 
   --glass: rgba(30, 30, 30, 0.95);
   --glass-border: rgba(255, 255, 255, 0.05);
+}
+
+/* Fix for Select Options in Dark Mode */
+select option {
+  background-color: var(--bg-surface);
+  color: var(--text-main);
 }
 
 * {
