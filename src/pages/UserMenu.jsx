@@ -221,10 +221,11 @@ const UserMenu = () => {
 
             // Call Backend to Initiate Payment
             // Dynamic Backend URL based on current hostname
-            const protocol = window.location.protocol;
-            const hostname = window.location.hostname;
-            const port = 5000; // Backend is always on 5000
-            const backendUrl = `${protocol}//${hostname}:${port}`;
+            // const protocol = window.location.protocol;
+            // const hostname = window.location.hostname;
+            // const port = 5000; // Backend is always on 5000
+            // const backendUrl = `${protocol}//${hostname}:${port}`;
+            const backendUrl = "http://localhost:5000";
 
             const res = await fetch(`${backendUrl}/api/pay`, {
                 method: 'POST',
@@ -511,9 +512,25 @@ const UserMenu = () => {
                                 </div>
 
 
-                                {/* Hostel Block - Hidden/Fixed */}
-                                <div style={{ display: 'none' }}>
-                                    <input value={orderDetails.hostelBlock} readOnly />
+                                {/* Hostel Block Selection */}
+                                <div className="input-group">
+                                    <label className="label">Hostel Block</label>
+                                    <div style={{ position: 'relative' }}>
+                                        <Building size={20} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                                        <select
+                                            className="input"
+                                            style={{ paddingLeft: '45px', appearance: 'none', cursor: 'pointer', background: 'var(--bg-card)' }}
+                                            value={orderDetails.hostelBlock}
+                                            onChange={e => setOrderDetails({ ...orderDetails, hostelBlock: e.target.value })}
+                                        >
+                                            <option value="" disabled>Select Block</option>
+                                            <option value="Annex Hostel (1st years)">Annex Hostel (1st years)</option>
+                                            <option value="Noyyal Hostel (SEC, SIMATS)">Noyyal Hostel (SEC, SIMATS)</option>
+                                            <option value="Pornai Hostel (Girls)">Pornai Hostel (Girls)</option>
+                                            <option value="Vaigai Hostel (Boys, SIMATS)">Vaigai Hostel (Boys, SIMATS)</option>
+                                            <option value="Krishna Hostel (Girls, SIMATS)">Krishna Hostel (Girls, SIMATS)</option>
+                                        </select>
+                                    </div>
                                 </div>
 
                                 <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>

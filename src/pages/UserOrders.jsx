@@ -1,14 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
-import { Clock, CheckCircle, Package, Calendar } from 'lucide-react';
+import { Clock, CheckCircle, Package, Calendar, Star, X, MessageSquare } from 'lucide-react';
 import { db } from '../lib/firebase';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy, doc, updateDoc } from 'firebase/firestore';
+import toast from 'react-hot-toast';
 
 const UserOrders = () => {
     const [activeTab, setActiveTab] = useState('active'); // 'active' or 'history'
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [hiddenOrders, setHiddenOrders] = useState([]);
+
+    // Feedback State
+    const [showFeedback, setShowFeedback] = useState(false);
+    const [selectedOrder, setSelectedOrder] = useState(null);
+    const [rating, setRating] = useState(5);
+    const [comment, setComment] = useState('');
 
     useEffect(() => {
         const storedHidden = JSON.parse(localStorage.getItem('hiddenOrders') || '[]');
@@ -52,6 +59,41 @@ const UserOrders = () => {
         const newHidden = [...hiddenOrders, ...historyIds];
         localStorage.setItem('hiddenOrders', JSON.stringify(newHidden));
         setHiddenOrders(newHidden);
+    };
+
+    const openFeedback = (order) => {
+        setSelectedOrder(order);
+        setRating(5);
+        setComment('');
+        setShowFeedback(true);
+    };
+
+    const submitFeedback = async () => {
+        if (!selectedOrder) return;
+
+        try {
+            const orderRef = doc(db, "orders", selectedOrder.id);
+            const feedbackData = {
+                rating,
+                comment,
+                timestamp: new Date()
+            };
+
+            await updateDoc(orderRef, {
+                feedback: feedbackData
+            });
+
+            // Update local state
+            setOrders(prev => prev.map(o =>
+                o.id === selectedOrder.id ? { ...o, feedback: feedbackData } : o
+            ));
+
+            toast.success("Thank you for your feedback!");
+            setShowFeedback(false);
+        } catch (error) {
+            console.error("Error submitting feedback:", error);
+            toast.error("Failed to submit feedback");
+        }
     };
 
     const getStatusColor = (status) => {
@@ -171,12 +213,40 @@ const UserOrders = () => {
                                     ))}
                                 </div>
 
-                                <div className="flex-between" style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                <div className="flex-between" style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
                                     <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
                                         Deliver to: <span style={{ color: 'var(--text-main)' }}>{order.userDetails.hostelBlock}, {order.userDetails.room}</span> ({order.userDetails.time})
                                     </div>
-                                    <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--primary)' }}>
-                                        Total: ₹{order.totalAmount}
+
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+
+                                        {/* Feedback Button for Completed Orders */}
+                                        {order.status === 'completed' && (
+                                            <>
+                                                {order.feedback ? (
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                                                        <div style={{ display: 'flex' }}>
+                                                            {[...Array(5)].map((_, i) => (
+                                                                <Star key={i} size={14} fill={i < order.feedback.rating ? "#FFD700" : "none"} color={i < order.feedback.rating ? "#FFD700" : "var(--text-muted)"} />
+                                                            ))}
+                                                        </div>
+                                                        <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Thanks!</span>
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => openFeedback(order)}
+                                                        className="btn btn-sm btn-outline"
+                                                        style={{ borderColor: 'var(--accent)', color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                                                    >
+                                                        <Star size={14} /> Rate Order
+                                                    </button>
+                                                )}
+                                            </>
+                                        )}
+
+                                        <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--primary)' }}>
+                                            Total: ₹{order.totalAmount}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -184,6 +254,56 @@ const UserOrders = () => {
                     </div>
                 )}
             </div>
+
+            {/* Feedback Modal */}
+            {showFeedback && (
+                <div style={{
+                    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+                    zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem'
+                }}>
+                    <div className="card animate-fade-in" style={{ width: '100%', maxWidth: '400px', padding: '2rem' }}>
+                        <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
+                            <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Rate your Order</h3>
+                            <button onClick={() => setShowFeedback(false)} className="btn btn-ghost" style={{ padding: '0.25rem' }}>
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
+                            {[1, 2, 3, 4, 5].map((star) => (
+                                <button
+                                    key={star}
+                                    onClick={() => setRating(star)}
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', transition: 'transform 0.2s' }}
+                                    onMouseOver={e => e.currentTarget.style.transform = 'scale(1.2)'}
+                                    onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+                                >
+                                    <Star
+                                        size={32}
+                                        fill={rating >= star ? "#FFD700" : "transparent"}
+                                        color={rating >= star ? "#FFD700" : "var(--text-muted)"}
+                                    />
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="input-group" style={{ marginBottom: '1.5rem' }}>
+                            <label className="label">Comments (Optional)</label>
+                            <textarea
+                                className="input"
+                                value={comment}
+                                onChange={(e) => setComment(e.target.value)}
+                                placeholder="How was the food? delivery?"
+                                style={{ minHeight: '80px', resize: 'none' }}
+                            />
+                        </div>
+
+                        <button onClick={submitFeedback} className="btn btn-primary" style={{ width: '100%' }}>
+                            Submit Feedback
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

@@ -110,7 +110,25 @@ const CreateAccount = () => {
                         </div>
                     </div>
 
-
+                    {/* Hostel Block Selection */}
+                    <div style={{ marginBottom: '1rem' }}>
+                        <label className="label">Hostel Block</label>
+                        <div style={{ position: 'relative' }}>
+                            <Building size={20} style={{ position: 'absolute', left: '12px', top: '15px', color: 'var(--text-muted)' }} />
+                            <select
+                                className="input"
+                                style={{ paddingLeft: '40px', appearance: 'none', cursor: 'pointer', background: 'var(--bg-card)' }}
+                                value={formData.hostelBlock}
+                                onChange={(e) => setFormData({ ...formData, hostelBlock: e.target.value })}
+                                required
+                            >
+                                <option value="" disabled>Select Block</option>
+                                {hostelOptions.map((opt, idx) => (
+                                    <option key={idx} value={opt}>{opt}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
 
                     {/* Mobile No (Read Only) */}
                     <div style={{ marginBottom: '1.5rem' }}>

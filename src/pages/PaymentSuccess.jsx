@@ -38,8 +38,9 @@ const PaymentSuccess = () => {
 
             try {
                 // VERIFY PAYMENT STATUS FIRST
-                const hostname = window.location.hostname;
-                const backendUrl = `http://${hostname}:5000`;
+                // const hostname = window.location.hostname;
+                // const backendUrl = `http://${hostname}:5000`;
+                const backendUrl = "http://localhost:5000";
                 const res = await fetch(`${backendUrl}/api/status/${orderId}`);
                 const statusData = await res.json();
 
