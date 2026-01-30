@@ -204,6 +204,14 @@ const UserOrders = () => {
                                     </div>
                                 </div>
 
+                                {/* Delivery OTP Display */}
+                                {['pending', 'preparing', 'accepted', 'ready'].includes(order.status) && (
+                                    <div style={{ background: 'var(--bg-surface)', padding: '0.75rem', borderRadius: 'var(--radius)', marginBottom: '1rem', border: '1px dashed var(--accent)', textAlign: 'center' }}>
+                                        <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginRight: '0.5rem' }}>Share Delivery PIN:</span>
+                                        <span style={{ fontSize: '1.2rem', fontWeight: 'bold', letterSpacing: '2px', color: 'var(--primary)' }}>{order.deliveryOtp || '----'}</span>
+                                    </div>
+                                )}
+
                                 <div className="flex-col" style={{ gap: '0.5rem', marginBottom: '1rem' }}>
                                     {order.itemSnapshot && order.itemSnapshot.map((item, idx) => (
                                         <div key={idx} className="flex-between">

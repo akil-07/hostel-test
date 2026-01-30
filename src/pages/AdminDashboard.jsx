@@ -87,13 +87,32 @@ const AdminDashboard = () => {
     };
 
     const updateOrderStatus = async (orderId, newStatus) => {
-        if (!window.confirm(`Mark order as ${newStatus}?`)) return;
+        // Find existing order
+        const order = orders.find(o => o.id === orderId);
+        if (!order) return;
+
+        // OTP Verification for Completion
+        if (newStatus === 'completed' && order.deliveryOtp) {
+            const inputOtp = prompt(`Enter User OTP for Order to ${order.userDetails?.name || 'User'}:`);
+            if (inputOtp !== order.deliveryOtp) {
+                toast.error("Incorrect OTP! Delivery cannot be verified.");
+                return;
+            }
+            toast.success("OTP Verified! completing order...");
+        } else if (newStatus === 'completed' && !order.deliveryOtp) {
+            if (!window.confirm("This order has no OTP. Mark as completed anyway?")) return;
+        } else {
+            // For other status changes (cancelled, etc)
+            if (!window.confirm(`Mark order as ${newStatus}?`)) return;
+        }
+
         try {
             await updateDoc(doc(db, "orders", orderId), {
                 status: newStatus
             });
             // Optimistic update
             setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+            toast.success(`Order marked as ${newStatus}`);
         } catch (error) {
             toast.error("Failed to update status");
         }
@@ -247,16 +266,19 @@ const AdminDashboard = () => {
         }
     };
 
+
+
     return (
         <div className="min-h-screen">
             <Navbar role="admin" />
             <div className="container" style={{ padding: '2rem 0' }}>
-
+                {/* ... existing header ... */}
                 <div className="flex-between" style={{ marginBottom: '2rem' }}>
                     <div>
                         <h2 style={{ fontSize: '2rem', fontWeight: '800', fontStyle: 'italic', letterSpacing: '-1px' }}>Dashboard</h2>
                         <p style={{ color: 'var(--text-muted)' }}>Manage inventory & orders</p>
                     </div>
+                    {/* ... existing tabs ... */}
                     <div style={{ display: 'flex', gap: '1rem', background: 'var(--bg-surface)', padding: '0.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
                         <button
                             className={`btn ${activeTab === 'orders' ? 'btn-primary' : 'btn-ghost'}`}
@@ -285,6 +307,7 @@ const AdminDashboard = () => {
                     </div>
                 </div>
 
+                {/* ... existing store status card ... */}
                 <div className="card" style={{ marginBottom: '2rem', background: 'var(--glass)' }}>
                     <div className="flex-between">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -315,6 +338,7 @@ const AdminDashboard = () => {
 
                 {activeTab === 'items' && (
                     <div className="grid-responsive">
+                        {/* ... existing items form ... */}
                         <div className="card">
                             <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Plus size={20} color="var(--accent)" /> Add New Item</h3>
                             <form onSubmit={handleAddItem} className="flex-col" style={{ gap: '1rem' }}>
@@ -373,7 +397,7 @@ const AdminDashboard = () => {
                             <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><ShoppingBag size={20} color="var(--primary)" /> Incoming Orders</h3>
                             <button className="btn btn-outline" onClick={fetchOrders}>Refresh Lists</button>
                         </div>
-
+                        {/* ... search ... */}
                         <div style={{ position: 'relative', marginBottom: '1.5rem' }}>
                             <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                             <input
@@ -399,9 +423,15 @@ const AdminDashboard = () => {
                                     order.userDetails.phone.includes(searchQuery)
                                 ).map(order => (
                                     <div key={order.id} className="card" style={{ padding: '1.5rem', background: 'var(--bg-card)', border: '1px solid var(--accent)' }}>
+                                        {/* ... card content ... */}
                                         <div className="flex-between" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
                                             <div>
-                                                <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{order.userDetails.name} <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>({order.userDetails.room})</span></div>
+                                                <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>
+                                                    {order.userDetails.name}
+                                                </div>
+                                                <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                                                    {order.userDetails.hostelBlock} {order.userDetails.hostelBlock && '•'} {order.userDetails.room}
+                                                </div>
                                                 <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{order.userDetails.phone}</div>
                                             </div>
                                             <div style={{ textAlign: 'right' }}>
@@ -431,6 +461,8 @@ const AdminDashboard = () => {
                                                 {order.status}
                                             </div>
                                             <div style={{ display: 'flex', gap: '0.5rem' }}>
+
+
                                                 <button className="btn btn-secondary" onClick={() => updateOrderStatus(order.id, 'cancelled')} style={{ color: 'var(--danger)' }}>Cancel</button>
                                                 <button className="btn btn-primary" onClick={() => updateOrderStatus(order.id, 'completed')} style={{ background: 'var(--success)' }}>Mark Done</button>
                                             </div>
@@ -479,7 +511,10 @@ const AdminDashboard = () => {
                                     <div key={order.id} className="card" style={{ padding: '1.5rem', background: 'var(--bg-card)', border: '1px solid var(--border)', opacity: 0.8 }}>
                                         <div className="flex-between" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
                                             <div>
-                                                <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{order.userDetails.name} <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>({order.userDetails.room})</span></div>
+                                                <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{order.userDetails.name}</div>
+                                                <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                                                    {order.userDetails.hostelBlock} {order.userDetails.hostelBlock && '•'} {order.userDetails.room}
+                                                </div>
                                                 <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{order.userDetails.phone}</div>
                                             </div>
                                             <div style={{ textAlign: 'right' }}>

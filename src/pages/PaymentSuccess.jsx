@@ -51,6 +51,9 @@ const PaymentSuccess = () => {
                     return;
                 }
 
+                // Generate 4-digit OTP
+                const otp = Math.floor(1000 + Math.random() * 9000).toString();
+
                 // Save Order to Firestore only if Payment is Success
                 await addDoc(collection(db, "orders"), {
                     userDetails: pendingData.userDetails,
@@ -59,6 +62,7 @@ const PaymentSuccess = () => {
                     totalAmount: pendingData.totalAmount,
                     paymentId: orderId,
                     status: 'pending',
+                    deliveryOtp: otp,
                     timestamp: new Date()
                 });
 

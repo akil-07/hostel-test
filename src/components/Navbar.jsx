@@ -5,7 +5,6 @@ import { ShoppingBag, LogOut, Shield, UtensilsCrossed, Menu, X } from 'lucide-re
 import ThemeToggle from './ThemeToggle';
 
 const Navbar = ({ role }) => {
-    // ... existing ... 
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = React.useState(false);
 
@@ -18,7 +17,7 @@ const Navbar = ({ role }) => {
     const closeMenu = () => setIsOpen(false);
 
     return (
-        <nav className="nav animate-fade-in">
+        <nav className="nav animate-fade-in" style={{ zIndex: 1000 }}>
             <div className="container nav-content">
                 <Link to={role === 'admin' ? '/admin' : '/menu'} className="nav-logo text-gradient" onClick={closeMenu}>
                     <UtensilsCrossed size={28} style={{ color: 'var(--primary)' }} />
@@ -36,7 +35,7 @@ const Navbar = ({ role }) => {
                 </button>
 
                 {/* Desktop & Mobile Navigation */}
-                <div className={`nav-links ${isOpen ? 'active' : ''}`}>
+                <div className={`nav - links ${isOpen ? 'active' : ''} `}>
                     {role === 'user' && (
                         <>
                             <Link to="/menu" className="btn btn-secondary" onClick={closeMenu}>Menu</Link>
