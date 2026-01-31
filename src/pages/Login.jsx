@@ -11,7 +11,7 @@ import ThemeToggle from '../components/ThemeToggle';
 const Login = () => {
     // ... existing state ...
     const [isSignUp, setIsSignUp] = useState(false); // Toggle between Login and Sign Up
-    const [isAdmin, setIsAdmin] = useState(false);
+
     const [loading, setLoading] = useState(false);
 
     // Sign Up Fields
@@ -60,8 +60,6 @@ const Login = () => {
             const user = result.user;
 
             if (user) {
-                // --- AUTO ADMIN CHECK ---
-                // If it's the master admin email, always log in as admin regardless of toggle or mode
                 if (user.email === "akilsudhagar7@gmail.com") {
                     localStorage.setItem('user', JSON.stringify({
                         email: user.email,
@@ -76,15 +74,7 @@ const Login = () => {
                     return;
                 }
 
-                // --- ADMIN TOGGLE FLOW (For other potential admins) ---
-                if (!isSignUp && isAdmin) {
-                    toast.error("Access Denied: You are not an admin.");
-                    await auth.signOut();
-                    setLoading(false);
-                    return;
-                }
-
-                // --- USER FLOW ---
+                // --- AUTOMATIC ROLE RECOGNITION ---
                 const userRef = doc(db, "users", user.uid);
                 const userDoc = await getDoc(userRef);
 
@@ -92,6 +82,16 @@ const Login = () => {
                     // CREATE ACCOUNT
                     if (userDoc.exists()) {
                         toast.success("Account already exists! Logging you in...");
+                        // Proceed to login logic below
+                        const userData = userDoc.data();
+
+                        if (userData.role === 'admin') {
+                            localStorage.setItem('user', JSON.stringify({ ...userData, uid: user.uid }));
+                            navigate('/admin');
+                        } else {
+                            localStorage.setItem('user', JSON.stringify({ ...userData, uid: user.uid }));
+                            navigate('/menu');
+                        }
                     } else {
                         // Create New User Profile in Firestore
                         await setDoc(userRef, {
@@ -103,18 +103,26 @@ const Login = () => {
                             role: 'user',
                             createdAt: new Date()
                         });
+
+                        // Save to local for session
+                        const userData = { name: user.displayName, email: user.email, photo: user.photoURL, room, phone, role: 'user', uid: user.uid };
+                        localStorage.setItem('user', JSON.stringify(userData));
+                        navigate('/menu');
                     }
-                    // Save to local for session
-                    const userData = { name: user.displayName, email: user.email, photo: user.photoURL, room, phone, role: 'user', uid: user.uid };
-                    localStorage.setItem('user', JSON.stringify(userData));
-                    navigate('/menu');
 
                 } else {
                     // LOGIN
                     if (userDoc.exists()) {
                         const userData = userDoc.data();
                         localStorage.setItem('user', JSON.stringify({ ...userData, uid: user.uid }));
-                        navigate('/menu');
+
+                        if (userData.role === 'admin') {
+                            toast.success("Welcome back, Admin!");
+                            navigate('/admin');
+                        } else {
+                            toast.success(`Welcome back, ${userData.name || 'User'}!`);
+                            navigate('/menu');
+                        }
                     } else {
                         toast.error("Account not found! Please Create an Account first.");
                         setIsSignUp(true); // Switch to Sign Up tab
@@ -157,24 +165,7 @@ const Login = () => {
                 </div>
 
                 {/* Admin Toggle (Only visible in Login Mode) */}
-                {!isSignUp && (
-                    <div className="flex-center" style={{ marginBottom: '1.5rem', gap: '1rem' }}>
-                        <button
-                            className={`btn ${!isAdmin ? 'btn-primary' : 'btn-outline'}`}
-                            onClick={() => setIsAdmin(false)}
-                            style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }}
-                        >
-                            Student
-                        </button>
-                        <button
-                            className={`btn ${isAdmin ? 'btn-primary' : 'btn-outline'}`}
-                            onClick={() => setIsAdmin(true)}
-                            style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }}
-                        >
-                            Admin
-                        </button>
-                    </div>
-                )}
+
 
                 {/* Sign Up Form Inputs */}
                 {isSignUp && (
@@ -207,7 +198,7 @@ const Login = () => {
                     disabled={loading}
                 >
                     <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="24" height="24" alt="Google" />
-                    {loading ? 'Processing...' : (isSignUp ? 'Sign Up with Google' : (isAdmin ? 'Admin Login' : 'Login with Google'))}
+                    {loading ? 'Processing...' : (isSignUp ? 'Sign Up with Google' : 'Login with Google')}
                 </button>
             </div>
         </div>

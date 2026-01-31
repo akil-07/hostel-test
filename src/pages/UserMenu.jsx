@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import Navbar from '../components/Navbar';
-import { ShoppingBag, Plus, Minus, Search, Clock, Calendar, MapPin, User, MessageSquare, X, Building, TrendingUp, Filter } from 'lucide-react';
+import { ShoppingBag, Plus, Minus, Search, Clock, Calendar, MapPin, User, MessageSquare, X, Building, TrendingUp, Filter, Bell } from 'lucide-react';
+import { subscribeToNotifications } from '../lib/notifications';
 import { db, auth } from '../lib/firebase';
 import { collection, getDocs, addDoc, updateDoc, doc, increment, getDoc, query, where, orderBy, limit } from 'firebase/firestore';
 
@@ -12,6 +13,38 @@ const UserMenu = () => {
     const [loading, setLoading] = useState(true);
     const [recentItems, setRecentItems] = useState([]);
     const [sortBy, setSortBy] = useState('relevant'); // relevant, sales, priceLow, priceHigh
+
+    // Notification State
+    const [notiEnabled, setNotiEnabled] = useState(false);
+
+    useEffect(() => {
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
+            navigator.serviceWorker.ready.then(registration => {
+                registration.pushManager.getSubscription().then(sub => {
+                    if (sub) setNotiEnabled(true);
+                });
+            });
+        }
+    }, []);
+
+    const handleEnableNotifications = async () => {
+        try {
+            await subscribeToNotifications();
+            setNotiEnabled(true);
+            toast.success("Notifications Enabled!");
+
+            // Send test notification
+            fetch('http://localhost:5000/api/send-notification', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: "Notifications Active", message: "You will receive updates here!" })
+            });
+
+        } catch (error) {
+            console.error(error);
+            toast.error("Could not enable notifications");
+        }
+    };
 
     // Checkout State
     const [showCheckout, setShowCheckout] = useState(false);
@@ -108,7 +141,7 @@ const UserMenu = () => {
             const q = query(
                 collection(db, "orders"),
                 where("userDetails.phone", "==", user.phone),
-                where("status", "in", ["pending", "accepted", "preparing", "ready"])
+                where("status", "in", ["pending", "accepted", "preparing", "ready", "dispatched"])
             );
             const snapshot = await getDocs(q);
             if (!snapshot.empty) {
@@ -219,6 +252,13 @@ const UserMenu = () => {
             };
             localStorage.setItem('pending_order_DATA', JSON.stringify(pendingData));
 
+            // UPDATE SUBSCRIPTION WITH PHONE NUMBER
+            try {
+                if ('serviceWorker' in navigator && 'PushManager' in window) {
+                    subscribeToNotifications().catch(e => console.log("Sub update failed", e));
+                }
+            } catch (e) { console.log("Push check failed", e); }
+
             // Call Backend to Initiate Payment
             // Dynamic Backend URL based on current hostname
             // const protocol = window.location.protocol;
@@ -260,7 +300,17 @@ const UserMenu = () => {
 
                 <div className="flex-between" style={{ marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
                     <div>
-                        <h2 style={{ fontSize: '2rem', fontWeight: '800', fontStyle: 'italic', letterSpacing: '-1px' }}>Menu</h2>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <h2 style={{ fontSize: '2rem', fontWeight: '800', fontStyle: 'italic', letterSpacing: '-1px' }}>Menu</h2>
+                            <button
+                                onClick={handleEnableNotifications}
+                                className="btn btn-sm btn-outline"
+                                style={{ borderRadius: '50%', padding: '0.5rem', borderColor: notiEnabled ? 'var(--success)' : 'var(--border)' }}
+                                title={notiEnabled ? "Notifications Active" : "Enable Notify"}
+                            >
+                                <Bell size={18} color={notiEnabled ? 'var(--success)' : 'var(--text-muted)'} />
+                            </button>
+                        </div>
                         <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>Order your favorites instantly</p>
                     </div>
 

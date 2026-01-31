@@ -116,7 +116,7 @@ const UserOrders = () => {
 
     // Filter Logic
     const visibleOrders = orders.filter(o => !hiddenOrders.includes(o.id));
-    const activeOrders = visibleOrders.filter(o => ['pending', 'preparing', 'accepted', 'ready'].includes(o.status));
+    const activeOrders = visibleOrders.filter(o => ['pending', 'preparing', 'accepted', 'ready', 'dispatched'].includes(o.status));
     const historyOrders = visibleOrders.filter(o => ['completed', 'cancelled', 'rejected'].includes(o.status));
 
     const displayedOrders = activeTab === 'active' ? activeOrders : historyOrders;
@@ -205,7 +205,7 @@ const UserOrders = () => {
                                 </div>
 
                                 {/* Delivery OTP Display */}
-                                {['pending', 'preparing', 'accepted', 'ready'].includes(order.status) && (
+                                {['pending', 'preparing', 'accepted', 'ready', 'dispatched'].includes(order.status) && (
                                     <div style={{ background: 'var(--bg-surface)', padding: '0.75rem', borderRadius: 'var(--radius)', marginBottom: '1rem', border: '1px dashed var(--accent)', textAlign: 'center' }}>
                                         <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginRight: '0.5rem' }}>Share Delivery PIN:</span>
                                         <span style={{ fontSize: '1.2rem', fontWeight: 'bold', letterSpacing: '2px', color: 'var(--primary)' }}>{order.deliveryOtp || '----'}</span>

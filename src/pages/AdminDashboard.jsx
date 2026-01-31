@@ -113,7 +113,37 @@ const AdminDashboard = () => {
             // Optimistic update
             setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
             toast.success(`Order marked as ${newStatus}`);
+
+            // Send Notification
+            if (['dispatched', 'completed'].includes(newStatus)) {
+                let title = "Order Update";
+                let message = `Your order is now ${newStatus}!`;
+
+                if (newStatus === 'dispatched') {
+                    title = "Order Dispatched 🚚";
+                    message = "Your order is on its way!";
+                } else if (newStatus === 'completed') {
+                    title = "Order Delivered ✅";
+                    message = "Your order has been delivered. Enjoy!";
+                }
+
+                // Call Backend to Notify User
+                const userPhone = order.userDetails?.phone;
+                if (userPhone) {
+                    fetch('http://localhost:5000/api/send-user-notification', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            userId: userPhone,
+                            title: title,
+                            message: message
+                        })
+                    }).catch(e => console.error("Notify Error", e));
+                }
+            }
+
         } catch (error) {
+            console.error(error);
             toast.error("Failed to update status");
         }
     };
@@ -417,7 +447,7 @@ const AdminDashboard = () => {
                                     order.userDetails.phone.includes(searchQuery)
                                 ).length === 0 && <p style={{ color: 'var(--text-muted)' }}>No active orders found.</p>}
 
-                                {orders.filter(o => o.status === 'pending').filter(order =>
+                                {orders.filter(o => ['pending', 'preparing', 'accepted', 'ready', 'dispatched'].includes(o.status)).filter(order =>
                                     order.userDetails.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                                     order.userDetails.room.includes(searchQuery) ||
                                     order.userDetails.phone.includes(searchQuery)
@@ -464,6 +494,9 @@ const AdminDashboard = () => {
 
 
                                                 <button className="btn btn-secondary" onClick={() => updateOrderStatus(order.id, 'cancelled')} style={{ color: 'var(--danger)' }}>Cancel</button>
+                                                {order.status !== 'dispatched' && (
+                                                    <button className="btn btn-secondary" onClick={() => updateOrderStatus(order.id, 'dispatched')} style={{ color: 'var(--accent)', borderColor: 'var(--accent)' }}>Dispatched 🏍️</button>
+                                                )}
                                                 <button className="btn btn-primary" onClick={() => updateOrderStatus(order.id, 'completed')} style={{ background: 'var(--success)' }}>Mark Done</button>
                                             </div>
                                         </div>
