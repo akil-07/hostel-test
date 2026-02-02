@@ -8,6 +8,8 @@ import { collection, getDocs, addDoc, updateDoc, doc, increment, getDoc, query, 
 
 const UserMenu = () => {
     const [items, setItems] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState('All');
     const [cart, setCart] = useState({});
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
@@ -94,7 +96,9 @@ const UserMenu = () => {
             }
         };
         fetchStatus();
+        fetchStatus();
         fetchItems();
+        fetchCategories();
         fetchRecommendations();
 
         // Payment Callback check removed
@@ -132,6 +136,16 @@ const UserMenu = () => {
     };
 
     const [activeOrder, setActiveOrder] = useState(null);
+
+    const fetchCategories = async () => {
+        try {
+            const querySnapshot = await getDocs(collection(db, "categories"));
+            const catList = querySnapshot.docs.map(doc => doc.data().name);
+            setCategories(['All', ...catList]);
+        } catch (error) {
+            console.error("Error fetching categories", error);
+        }
+    };
 
     const fetchActiveOrder = async () => {
         const user = JSON.parse(localStorage.getItem('user'));
@@ -194,7 +208,8 @@ const UserMenu = () => {
     const getItemCount = (id) => cart[id] || 0;
 
     const filteredItems = items.filter(item =>
-        item.name.toLowerCase().includes(searchTerm.toLowerCase())
+        item.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        (selectedCategory === 'All' || item.category === selectedCategory)
     ).sort((a, b) => {
         if (sortBy === 'sales') return (b.sales || 0) - (a.sales || 0);
         if (sortBy === 'priceLow') return Number(a.price) - Number(b.price);
@@ -375,6 +390,54 @@ const UserMenu = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Categories Notch (Scrollable) */}
+            <div style={{
+                display: 'flex',
+                gap: '0.75rem',
+                overflowX: 'auto',
+                paddingBottom: '0.5rem',
+                marginBottom: '1.5rem',
+                scrollbarWidth: 'none', /* Firefox */
+                msOverflowStyle: 'none',  /* IE 10+ */
+                '::-webkit-scrollbar': { display: 'none' }
+            }}>
+                <style>{`
+                        .category-pill {
+                            white-space: nowrap;
+                            padding: 0.5rem 1.25rem;
+                            border-radius: 50px;
+                            background: var(--bg-card);
+                            border: 1px solid var(--border);
+                            color: var(--text-muted);
+                            font-weight: 500;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                            user-select: none;
+                        }
+                        .category-pill.active {
+                            background: var(--primary);
+                            color: white;
+                            border-color: var(--primary);
+                            transform: scale(1.05);
+                            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+                        }
+                        .category-pill:hover:not(.active) {
+                            background: var(--bg-surface);
+                            border-color: var(--text-muted);
+                        }
+                    `}</style>
+                {categories.map((cat, idx) => (
+                    <div
+                        key={idx}
+                        className={`category-pill ${selectedCategory === cat ? 'active' : ''}`}
+                        onClick={() => setSelectedCategory(cat)}
+                    >
+                        {cat}
+                    </div>
+                ))}
+            </div>
+
 
 
 

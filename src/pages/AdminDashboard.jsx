@@ -9,17 +9,26 @@ const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('orders'); // 'items' or 'orders'
     const [items, setItems] = useState([]);
     const [orders, setOrders] = useState([]);
-    const [newItem, setNewItem] = useState({ name: '', price: '', stock: '' });
+    const [newItem, setNewItem] = useState({ name: '', price: '', stock: '', category: '' });
+    const [categories, setCategories] = useState([]);
+    const [newCategory, setNewCategory] = useState('');
     const [imageFile, setImageFile] = useState(null);
     const [loading, setLoading] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
 
+    // OTP Modal State
+    const [otpModal, setOtpModal] = useState({ isOpen: false, orderId: null });
+    const [otpInput, setOtpInput] = useState('');
+
     const [storeStatus, setStoreStatus] = useState({ status: 'now', message: '' });
 
     useEffect(() => {
-        if (activeTab === 'items') fetchItems();
+        if (activeTab === 'items') {
+            fetchItems();
+            fetchCategories();
+        }
         else fetchOrders();
         fetchStoreStatus();
     }, [activeTab]);
@@ -67,6 +76,43 @@ const AdminDashboard = () => {
         setFetchLoading(false);
     };
 
+    const fetchCategories = async () => {
+        try {
+            const querySnapshot = await getDocs(collection(db, "categories"));
+            const catList = querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            setCategories(catList);
+        } catch (error) {
+            console.error("Error fetching categories: ", error);
+        }
+    };
+
+    const handleAddCategory = async (e) => {
+        e.preventDefault();
+        if (!newCategory.trim()) return;
+        try {
+            await addDoc(collection(db, "categories"), { name: newCategory.trim() });
+            setNewCategory('');
+            fetchCategories();
+            toast.success("Category added");
+        } catch (error) {
+            toast.error("Failed to add category");
+        }
+    };
+
+    const handleDeleteCategory = async (id) => {
+        if (!window.confirm("Delete this category?")) return;
+        try {
+            await deleteDoc(doc(db, "categories", id));
+            setCategories(categories.filter(c => c.id !== id));
+            toast.success("Category deleted");
+        } catch (error) {
+            toast.error("Failed to delete category");
+        }
+    };
+
     const fetchOrders = async () => {
         setFetchLoading(true);
         try {
@@ -86,21 +132,23 @@ const AdminDashboard = () => {
         setFetchLoading(false);
     };
 
-    const updateOrderStatus = async (orderId, newStatus) => {
+    const updateOrderStatus = async (orderId, newStatus, isVerified = false) => {
         // Find existing order
         const order = orders.find(o => o.id === orderId);
         if (!order) return;
 
-        // OTP Verification for Completion
-        if (newStatus === 'completed' && order.deliveryOtp) {
-            const inputOtp = prompt(`Enter User OTP for Order to ${order.userDetails?.name || 'User'}:`);
-            if (inputOtp !== order.deliveryOtp) {
-                toast.error("Incorrect OTP! Delivery cannot be verified.");
+        // OTP Verification forCompletion
+        if (newStatus === 'completed') {
+            if (order.deliveryOtp && !isVerified) {
+                // Trigger UI Modal instead of prompt
+                setOtpModal({ isOpen: true, orderId: orderId });
+                setOtpInput('');
                 return;
             }
-            toast.success("OTP Verified! completing order...");
-        } else if (newStatus === 'completed' && !order.deliveryOtp) {
-            if (!window.confirm("This order has no OTP. Mark as completed anyway?")) return;
+            // If no OTP, confirm normal completion
+            if (!order.deliveryOtp && !isVerified) {
+                if (!window.confirm("This order has no OTP. Mark as completed anyway?")) return;
+            }
         } else {
             // For other status changes (cancelled, etc)
             if (!window.confirm(`Mark order as ${newStatus}?`)) return;
@@ -191,9 +239,14 @@ const AdminDashboard = () => {
                 }
             }
             await addDoc(collection(db, "items"), {
-                name: newItem.name, price: Number(newItem.price), stock: Number(newItem.stock), image: imageUrl, createdAt: new Date()
+                name: newItem.name,
+                price: Number(newItem.price),
+                stock: Number(newItem.stock),
+                category: newItem.category || 'General',
+                image: imageUrl,
+                createdAt: new Date()
             });
-            setNewItem({ name: '', price: '', stock: '' }); setImageFile(null);
+            setNewItem({ name: '', price: '', stock: '', category: '' }); setImageFile(null);
             await fetchItems();
             toast.success("Item added successfully!");
         } catch (error) {
@@ -296,6 +349,21 @@ const AdminDashboard = () => {
         }
     };
 
+    const handleVerifyOtp = (e) => {
+        e.preventDefault();
+        const order = orders.find(o => o.id === otpModal.orderId);
+        if (!order) return;
+
+        if (otpInput !== order.deliveryOtp) {
+            toast.error("Incorrect OTP! Please check with the student.");
+            return;
+        }
+
+        toast.success("OTP Verified Successfully!");
+        setOtpModal({ isOpen: false, orderId: null });
+        updateOrderStatus(order.id, 'completed', true);
+    };
+
 
 
     return (
@@ -368,35 +436,76 @@ const AdminDashboard = () => {
 
                 {activeTab === 'items' && (
                     <div className="grid-responsive">
-                        {/* ... existing items form ... */}
-                        <div className="card">
-                            <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Plus size={20} color="var(--accent)" /> Add New Item</h3>
-                            <form onSubmit={handleAddItem} className="flex-col" style={{ gap: '1rem' }}>
-                                <div>
-                                    <label className="label">Item Name</label>
-                                    <input className="input" value={newItem.name} onChange={(e) => setNewItem({ ...newItem, name: e.target.value })} required />
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                            {/* Categories Manager */}
+                            <div className="card">
+                                <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>Manage Categories</h3>
+                                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                                    <input
+                                        className="input"
+                                        placeholder="New Category (e.g. Snacks)"
+                                        value={newCategory}
+                                        onChange={(e) => setNewCategory(e.target.value)}
+                                    />
+                                    <button onClick={handleAddCategory} className="btn btn-secondary"><Plus size={18} /></button>
                                 </div>
-                                <div style={{ display: 'flex', gap: '1rem' }}>
-                                    <div style={{ flex: 1 }}>
-                                        <label className="label">Price (₹)</label>
-                                        <input type="number" className="input" value={newItem.price} onChange={(e) => setNewItem({ ...newItem, price: e.target.value })} required />
-                                    </div>
-                                    <div style={{ flex: 1 }}>
-                                        <label className="label">Stock</label>
-                                        <input type="number" className="input" value={newItem.stock} onChange={(e) => setNewItem({ ...newItem, stock: e.target.value })} required />
-                                    </div>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                    {categories.map(cat => (
+                                        <div key={cat.id} className="badge" style={{ padding: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-body)', border: '1px solid var(--border)' }}>
+                                            {cat.name}
+                                            <button onClick={() => handleDeleteCategory(cat.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+                                                <X size={14} />
+                                            </button>
+                                        </div>
+                                    ))}
                                 </div>
-                                <div>
-                                    <label className="label">Image</label>
-                                    <div style={{ position: 'relative', overflow: 'hidden' }}>
-                                        <input type="file" accept=".jpg, .jpeg, .png, .webp" onChange={(e) => setImageFile(e.target.files[0])} style={{ position: 'absolute', opacity: 0, width: '100%', height: '100%', cursor: 'pointer' }} />
-                                        <div className="input" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', borderStyle: 'dashed' }}>
-                                            <ImageIcon size={18} /><span>{imageFile ? imageFile.name : 'Upload Image'}</span>
+                            </div>
+
+                            {/* Add Item Form */}
+                            <div className="card">
+                                <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Plus size={20} color="var(--accent)" /> Add New Item</h3>
+                                <form onSubmit={handleAddItem} className="flex-col" style={{ gap: '1rem' }}>
+                                    <div>
+                                        <label className="label">Item Name</label>
+                                        <input className="input" value={newItem.name} onChange={(e) => setNewItem({ ...newItem, name: e.target.value })} required />
+                                    </div>
+                                    <div>
+                                        <label className="label">Category</label>
+                                        <select
+                                            className="input"
+                                            value={newItem.category}
+                                            onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
+                                            style={{ background: 'var(--bg-input)' }}
+                                        >
+                                            <option value="">Select Category</option>
+                                            {categories.map(cat => (
+                                                <option key={cat.id} value={cat.name}>{cat.name}</option>
+                                            ))}
+                                            <option value="General">General</option>
+                                        </select>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '1rem' }}>
+                                        <div style={{ flex: 1 }}>
+                                            <label className="label">Price (₹)</label>
+                                            <input type="number" className="input" value={newItem.price} onChange={(e) => setNewItem({ ...newItem, price: e.target.value })} required />
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <label className="label">Stock</label>
+                                            <input type="number" className="input" value={newItem.stock} onChange={(e) => setNewItem({ ...newItem, stock: e.target.value })} required />
                                         </div>
                                     </div>
-                                </div>
-                                <button className="btn btn-primary" type="submit" disabled={loading}>{loading ? 'Processing...' : 'Add Item'}</button>
-                            </form>
+                                    <div>
+                                        <label className="label">Image</label>
+                                        <div style={{ position: 'relative', overflow: 'hidden' }}>
+                                            <input type="file" accept=".jpg, .jpeg, .png, .webp" onChange={(e) => setImageFile(e.target.files[0])} style={{ position: 'absolute', opacity: 0, width: '100%', height: '100%', cursor: 'pointer' }} />
+                                            <div className="input" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', borderStyle: 'dashed' }}>
+                                                <ImageIcon size={18} /><span>{imageFile ? imageFile.name : 'Upload Image'}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button className="btn btn-primary" type="submit" disabled={loading}>{loading ? 'Processing...' : 'Add Item'}</button>
+                                </form>
+                            </div>
                         </div>
                         <div style={{ gridColumn: 'span 2' }}>
                             <div className="card">
@@ -406,7 +515,11 @@ const AdminDashboard = () => {
                                         {items.map(item => (
                                             <div key={item.id} className="card" style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', background: 'var(--bg-card)' }}>
                                                 <img src={item.image} alt={item.name} style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover' }} />
-                                                <div style={{ flex: 1 }}><h4 style={{ fontWeight: 600 }}>{item.name}</h4><p style={{ color: 'var(--text-muted)' }}>Stock: {item.stock}</p></div>
+                                                <div style={{ flex: 1 }}>
+                                                    <h4 style={{ fontWeight: 600 }}>{item.name}</h4>
+                                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{item.category}</p>
+                                                    <p style={{ color: 'var(--text-muted)' }}>Stock: {item.stock}</p>
+                                                </div>
                                                 <div style={{ fontWeight: 'bold', color: 'var(--accent)' }}>₹{item.price}</div>
                                                 <button onClick={() => handleRestock(item)} className="btn btn-secondary" style={{ padding: '0.5rem', marginRight: '0.5rem', color: 'var(--success)' }} title="Restock">
                                                     <RefreshCcw size={16} />
@@ -719,6 +832,55 @@ const AdminDashboard = () => {
                 )}
 
             </div>
+
+            {/* OTP Verification Modal */}
+            {otpModal.isOpen && (
+                <div style={{
+                    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(5px)',
+                    zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem'
+                }}>
+                    <div className="card animate-fade-in" style={{ width: '100%', maxWidth: '400px', padding: '2rem', border: '1px solid var(--accent)' }}>
+                        <div className="flex-between" style={{ marginBottom: '2rem' }}>
+                            <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <CheckCircle color="var(--accent)" /> Verify Delivery
+                            </h3>
+                            <button onClick={() => setOtpModal({ isOpen: false, orderId: null })} className="btn btn-ghost" style={{ padding: '0.25rem' }}>
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', textAlign: 'center' }}>
+                            Ask the student for the <strong>4-digit PIN</strong> to complete this order.
+                        </p>
+
+                        <form onSubmit={handleVerifyOtp} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                <input
+                                    autoFocus
+                                    className="input"
+                                    type="text"
+                                    placeholder="Enter PIN"
+                                    value={otpInput}
+                                    onChange={(e) => setOtpInput(e.target.value)}
+                                    maxLength={4}
+                                    style={{
+                                        fontSize: '2rem',
+                                        textAlign: 'center',
+                                        letterSpacing: '0.5rem',
+                                        padding: '1rem',
+                                        width: '200px',
+                                        fontWeight: 'bold'
+                                    }}
+                                />
+                            </div>
+
+                            <button type="submit" className="btn btn-primary" style={{ padding: '1rem', fontSize: '1.1rem' }}>
+                                Verify & Complete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div >
     );
 };
