@@ -178,7 +178,7 @@ const AdminDashboard = () => {
                 // Call Backend to Notify User
                 const userPhone = order.userDetails?.phone;
                 if (userPhone) {
-                    fetch('http://localhost:5000/api/send-user-notification', {
+                    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/send-user-notification`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({

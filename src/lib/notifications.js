@@ -29,7 +29,7 @@ export const subscribeToNotifications = async () => {
     });
 
     // 2. Get Public VAPID Key from Backend
-    const response = await fetch('http://localhost:5000/api/vapid-public-key');
+    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/vapid-public-key`);
     const data = await response.json();
     const publicVapidKey = data.publicKey;
 
@@ -44,7 +44,7 @@ export const subscribeToNotifications = async () => {
     const userProfile = JSON.parse(localStorage.getItem('hostel_user_profile') || '{}');
     const userPhone = userProfile.phone || 'unknown';
 
-    await fetch('http://localhost:5000/api/subscribe', {
+    await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/subscribe`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

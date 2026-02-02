@@ -36,7 +36,7 @@ const UserMenu = () => {
             toast.success("Notifications Enabled!");
 
             // Send test notification
-            fetch('http://localhost:5000/api/send-notification', {
+            fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/send-notification`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ title: "Notifications Active", message: "You will receive updates here!" })
@@ -280,7 +280,7 @@ const UserMenu = () => {
             // const hostname = window.location.hostname;
             // const port = 5000; // Backend is always on 5000
             // const backendUrl = `${protocol}//${hostname}:${port}`;
-            const backendUrl = "http://localhost:5000";
+            const backendUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
             const res = await fetch(`${backendUrl}/api/pay`, {
                 method: 'POST',
