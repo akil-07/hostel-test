@@ -180,8 +180,10 @@ const UserMenu = () => {
                 ...doc.data()
             }));
             setItems(itemsList);
+            // toast.success(`Loaded ${itemsList.length} items`);
         } catch (error) {
             console.error(error);
+            toast.error("Failed to load items: " + error.message);
         }
         setLoading(false);
     };
@@ -299,12 +301,17 @@ const UserMenu = () => {
                 window.location.href = data.url;
             } else {
                 console.error("No redirect URL received:", data);
+                if (data.details) {
+                    alert("Payment Failed: " + JSON.stringify(data.details));
+                } else {
+                    alert("Payment Server Error: " + (data.error || "Unknown Error"));
+                }
                 toast.error("Payment initiation failed at server.");
             }
 
         } catch (error) {
             console.error("Payment Error:", error);
-            toast.error("Failed to initiate payment. Check console.");
+            toast.error("Failed: " + (error.message || "Check console"));
         }
     };
 
@@ -498,7 +505,14 @@ const UserMenu = () => {
                     <p style={{ color: 'var(--text-muted)' }}>Loading menu...</p>
                 ) : (
                     <div className="grid-responsive">
-                        {filteredItems.length === 0 && <p style={{ color: 'var(--text-muted)' }}>No items found in stock.</p>}
+                        {filteredItems.length === 0 && (
+                            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+                                <p>No items found in stock.</p>
+                                <button className="btn btn-outline btn-sm" onClick={fetchItems} style={{ marginTop: '1rem' }}>
+                                    Retry Loading
+                                </button>
+                            </div>
+                        )}
                         {filteredItems.map(item => (
                             <div key={item.id} className="card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', border: 'none', boxShadow: 'var(--shadow-sm)' }}>
                                 <div style={{ height: '200px', overflow: 'hidden' }}>
@@ -713,6 +727,30 @@ const UserMenu = () => {
                     </div>
                 )
             }
+            {/* DEBUG PANEL - REMOVE BEFORE FINAL LAUNCH */}
+            <div style={{ marginTop: '3rem', padding: '1rem', background: '#f8f9fa', border: '2px dashed #ccc', borderRadius: '8px', fontSize: '0.8rem', color: '#666' }}>
+                <h5 style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>🔧 Connection Troubleshooter</h5>
+                <p><strong>Configured Backend:</strong> {import.meta.env.VITE_API_URL || "⚠️ Not Set (Using http://localhost:5000)"}</p>
+                <button
+                    className="btn btn-sm btn-outline"
+                    onClick={async () => {
+                        try {
+                            const url = (import.meta.env.VITE_API_URL || 'http://localhost:5000');
+                            toast.loading("Pinging Backend...");
+                            const res = await fetch(url + '/');
+                            const text = await res.text();
+                            toast.dismiss();
+                            toast.success("Connected! Response: " + text);
+                        } catch (e) {
+                            toast.dismiss();
+                            toast.error("Connection Failed: " + e.message);
+                            alert("Error Details: \n" + e.message + "\n\nTip: If this is 'Failed to fetch', it's likely a Mixed Content issue (HTTPS vs HTTP) or the server is down.");
+                        }
+                    }}
+                >
+                    Test Server Connection
+                </button>
+            </div>
         </div >
     );
 };
