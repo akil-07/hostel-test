@@ -83,9 +83,10 @@ app.get('/', (req, res) => {
 const PORT = 5000;
 
 // CONSTANTS
-const MERCHANT_ID = process.env.MERCHANT_ID;
-const SALT_KEY = process.env.SALT_KEY;
-const SALT_INDEX = process.env.SALT_INDEX || 1;
+// CONSTANTS - DEBUG: Force Standard Test Credentials
+const MERCHANT_ID = "PGTESTPAYUAT";
+const SALT_KEY = "099eb0cd-02cf-4e2a-8aca-3e6c6aff0399";
+const SALT_INDEX = 1;
 
 // SANDBOX URL
 const PHONEPE_HOST_URL = process.env.PHONEPE_HOST_URL || "https://api-preprod.phonepe.com/apis/pg-sandbox";
