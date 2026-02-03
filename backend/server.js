@@ -90,9 +90,15 @@ const SALT_KEY = (process.env.SALT_KEY || "099eb0cd-02cf-4e2a-8aca-3e6c6aff0399"
 const SALT_INDEX = (process.env.SALT_INDEX || "1").trim();
 
 // PHONEPE URL (Sandbox vs Production)
-// Sandbox: https://api-preprod.phonepe.com/apis/pg-sandbox
 // Production: https://api.phonepe.com/apis/hermes
-const PHONEPE_HOST_URL = (process.env.PHONEPE_HOST_URL || "https://api-preprod.phonepe.com/apis/pg-sandbox").trim();
+let PHONEPE_HOST_URL = (process.env.PHONEPE_HOST_URL || "https://api-preprod.phonepe.com/apis/pg-sandbox").trim();
+
+// SAFETY OVERRIDE: If using Test Merchant ID, FORCE Sandbox URL
+// This fixes the common error where Env Vars point to Production but keys are for Testing
+if (MERCHANT_ID === "PGTESTPAYUAT") {
+    console.log("⚠️ DETECTED TEST MERCHANT ID: Forcing Sandbox URL");
+    PHONEPE_HOST_URL = "https://api-preprod.phonepe.com/apis/pg-sandbox";
+}
 
 // APP URLs - Use Environment Variables in Production (Render/Vercel)
 // For Mobile Testing: Use your PC's Local IP (Check via 'ipconfig')
