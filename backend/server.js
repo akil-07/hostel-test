@@ -141,7 +141,8 @@ app.post('/api/pay', validatePayment, async (req, res) => {
         const sha256 = crypto.createHash('sha256').update(stringToHash).digest('hex');
         const xVerify = sha256 + "###" + SALT_INDEX;
 
-        console.log("--- DEBUG PHOPE PE REQUEST ---");
+        console.log("--- DEBUG PHONEPE REQUEST ---");
+        console.log("Using Merchant ID:", MERCHANT_ID); // DEBUG: Check what ID is being used
         console.log("Payload:", JSON.stringify(payload));
         console.log("X-VERIFY:", xVerify);
         console.log("URL:", `${PHONEPE_HOST_URL}/pg/v1/pay`);
