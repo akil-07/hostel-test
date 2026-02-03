@@ -5,6 +5,7 @@ import { ShoppingBag, Plus, Minus, Search, Clock, Calendar, MapPin, User, Messag
 import { subscribeToNotifications } from '../lib/notifications';
 import { db, auth } from '../lib/firebase';
 import { collection, getDocs, addDoc, updateDoc, doc, increment, getDoc, query, where, orderBy, limit } from 'firebase/firestore';
+import { API_URL } from '../config';
 
 const UserMenu = () => {
     const [items, setItems] = useState([]);
@@ -36,7 +37,7 @@ const UserMenu = () => {
             toast.success("Notifications Enabled!");
 
             // Send test notification
-            fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/send-notification`, {
+            fetch(`${API_URL}/api/send-notification`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ title: "Notifications Active", message: "You will receive updates here!" })
@@ -282,7 +283,8 @@ const UserMenu = () => {
             // const hostname = window.location.hostname;
             // const port = 5000; // Backend is always on 5000
             // const backendUrl = `${protocol}//${hostname}:${port}`;
-            const backendUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+            // const backendUrl = `${protocol}//${hostname}:${port}`;
+            const backendUrl = API_URL;
 
             const res = await fetch(`${backendUrl}/api/pay`, {
                 method: 'POST',
@@ -730,12 +732,12 @@ const UserMenu = () => {
             {/* DEBUG PANEL - REMOVE BEFORE FINAL LAUNCH */}
             <div style={{ marginTop: '3rem', padding: '1rem', background: '#f8f9fa', border: '2px dashed #ccc', borderRadius: '8px', fontSize: '0.8rem', color: '#666' }}>
                 <h5 style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>🔧 Connection Troubleshooter</h5>
-                <p><strong>Configured Backend:</strong> {import.meta.env.VITE_API_URL || "⚠️ Not Set (Using http://localhost:5000)"}</p>
+                <p><strong>Configured Backend:</strong> {API_URL}</p>
                 <button
                     className="btn btn-sm btn-outline"
                     onClick={async () => {
                         try {
-                            const url = (import.meta.env.VITE_API_URL || 'http://localhost:5000');
+                            const url = API_URL;
                             toast.loading("Pinging Backend...");
                             const res = await fetch(url + '/');
                             const text = await res.text();

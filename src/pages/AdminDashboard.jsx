@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import { Plus, Trash2, Image as ImageIcon, Package, ShoppingBag, CheckCircle, X, Clock, RefreshCcw, Search, History, BarChart2 } from 'lucide-react';
 import { db } from '../lib/firebase';
 import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, orderBy, query, getDoc, setDoc } from 'firebase/firestore';
+import { API_URL } from '../config';
 
 const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('orders'); // 'items' or 'orders'
@@ -178,7 +179,7 @@ const AdminDashboard = () => {
                 // Call Backend to Notify User
                 const userPhone = order.userDetails?.phone;
                 if (userPhone) {
-                    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/send-user-notification`, {
+                    fetch(`${API_URL}/api/send-user-notification`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({

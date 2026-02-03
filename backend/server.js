@@ -83,13 +83,16 @@ app.get('/', (req, res) => {
 const PORT = 5000;
 
 // CONSTANTS
-// CONSTANTS - DEBUG: Force Standard Test Credentials
-const MERCHANT_ID = "PGTESTPAYUAT";
-const SALT_KEY = "099eb0cd-02cf-4e2a-8aca-3e6c6aff0399";
-const SALT_INDEX = 1;
+// PHONEPE CREDENTIALS
+// Use Environment Variables for Production. Fallback to Sandbox for Testing.
+const MERCHANT_ID = (process.env.MERCHANT_ID || "PGTESTPAYUAT").trim();
+const SALT_KEY = (process.env.SALT_KEY || "099eb0cd-02cf-4e2a-8aca-3e6c6aff0399").trim();
+const SALT_INDEX = (process.env.SALT_INDEX || "1").trim();
 
-// SANDBOX URL
-const PHONEPE_HOST_URL = process.env.PHONEPE_HOST_URL || "https://api-preprod.phonepe.com/apis/pg-sandbox";
+// PHONEPE URL (Sandbox vs Production)
+// Sandbox: https://api-preprod.phonepe.com/apis/pg-sandbox
+// Production: https://api.phonepe.com/apis/hermes
+const PHONEPE_HOST_URL = (process.env.PHONEPE_HOST_URL || "https://api-preprod.phonepe.com/apis/pg-sandbox").trim();
 
 // APP URLs - Use Environment Variables in Production (Render/Vercel)
 // For Mobile Testing: Use your PC's Local IP (Check via 'ipconfig')

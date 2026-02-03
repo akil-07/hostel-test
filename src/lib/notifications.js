@@ -1,4 +1,6 @@
 
+import { API_URL } from '../config';
+
 const urlBase64ToUint8Array = (base64String) => {
     const padding = '='.repeat((4 - base64String.length % 4) % 4);
     const base64 = (base64String + padding)
@@ -29,7 +31,7 @@ export const subscribeToNotifications = async () => {
     });
 
     // 2. Get Public VAPID Key from Backend
-    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/vapid-public-key`);
+    const response = await fetch(`${API_URL}/api/vapid-public-key`);
     const data = await response.json();
     const publicVapidKey = data.publicKey;
 
@@ -44,7 +46,7 @@ export const subscribeToNotifications = async () => {
     const userProfile = JSON.parse(localStorage.getItem('hostel_user_profile') || '{}');
     const userPhone = userProfile.phone || 'unknown';
 
-    await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/subscribe`, {
+    await fetch(`${API_URL}/api/subscribe`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

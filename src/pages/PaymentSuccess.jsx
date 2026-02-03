@@ -5,6 +5,7 @@ import { db } from '../lib/firebase';
 import { collection, addDoc, doc, updateDoc, increment } from 'firebase/firestore';
 import { CheckCircle, XCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { API_URL } from '../config';
 
 const PaymentSuccess = () => {
     const [searchParams] = useSearchParams();
@@ -40,7 +41,7 @@ const PaymentSuccess = () => {
                 // VERIFY PAYMENT STATUS FIRST
                 // const hostname = window.location.hostname;
                 // const backendUrl = `http://${hostname}:5000`;
-                const backendUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+                const backendUrl = API_URL;
                 const res = await fetch(`${backendUrl}/api/status/${orderId}`);
                 const statusData = await res.json();
 
@@ -139,7 +140,7 @@ const PaymentSuccess = () => {
                                 onClick={async () => {
                                     try {
                                         toast.loading("Checking PhonePe Server...");
-                                        const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/status/${orderId}`);
+                                        const res = await fetch(`${API_URL}/api/status/${orderId}`);
                                         const data = await res.json();
                                         if (data.code === 'PAYMENT_SUCCESS') {
                                             toast.dismiss();
