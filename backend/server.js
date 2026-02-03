@@ -105,6 +105,15 @@ if (MERCHANT_ID === "PGTESTPAYUAT") {
 const APP_BE_URL = process.env.APP_BE_URL || "http://localhost:5000";
 const APP_FE_URL = process.env.APP_FE_URL || "http://localhost:5173";
 
+// Log configuration on startup
+console.log("\n========== PHONEPE CONFIGURATION ==========");
+console.log("Merchant ID:", MERCHANT_ID);
+console.log("Salt Index:", SALT_INDEX);
+console.log("PhonePe URL:", PHONEPE_HOST_URL);
+console.log("Backend URL:", APP_BE_URL);
+console.log("Frontend URL:", APP_FE_URL);
+console.log("==========================================\n");
+
 const validatePayment = [
     body('amount').isFloat({ min: 1 }).withMessage('Amount must be at least 1'),
     body('userId').trim().notEmpty().withMessage('User ID is required').isLength({ max: 100 }),
@@ -123,8 +132,9 @@ app.post('/api/pay', validatePayment, async (req, res) => {
 
         // 1. Create Payload
         // DYNAMICALLY DETERMINE FRONTEND URL FROM REQUEST ORIGIN
-        const clientOrigin = req.headers.origin || "http://localhost:5173";
-        const backendUrl = process.env.APP_BE_URL || `http://${req.hostname}:5000`; // Best guess for backend
+        const clientOrigin = req.headers.origin || APP_FE_URL;
+        // Use explicit backend URL from environment (critical for Render deployment)
+        const backendUrl = APP_BE_URL;
 
         const payload = {
             merchantId: MERCHANT_ID,
