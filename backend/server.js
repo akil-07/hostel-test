@@ -85,8 +85,9 @@ const PORT = 5000;
 // CONSTANTS
 // PHONEPE CREDENTIALS
 // Use Environment Variables for Production. Fallback to Sandbox for Testing.
-const MERCHANT_ID = (process.env.MERCHANT_ID || "PGTESTPAYUAT").trim();
-const SALT_KEY = (process.env.SALT_KEY || "099eb0cd-02cf-4e2a-8aca-3e6c6aff0399").trim();
+// NOTE: Using PGTESTPAYUAT86 instead of PGTESTPAYUAT to avoid rate limiting
+const MERCHANT_ID = (process.env.MERCHANT_ID || "PGTESTPAYUAT86").trim();
+const SALT_KEY = (process.env.SALT_KEY || "96434309-7796-489d-8924-ab56988a6076").trim();
 const SALT_INDEX = (process.env.SALT_INDEX || "1").trim();
 
 // PHONEPE URL (Sandbox vs Production)
@@ -95,7 +96,7 @@ let PHONEPE_HOST_URL = (process.env.PHONEPE_HOST_URL || "https://api-preprod.pho
 
 // SAFETY OVERRIDE: If using Test Merchant ID, FORCE Sandbox URL
 // This fixes the common error where Env Vars point to Production but keys are for Testing
-if (MERCHANT_ID === "PGTESTPAYUAT") {
+if (MERCHANT_ID === "PGTESTPAYUAT86" || MERCHANT_ID === "PGTESTPAYUAT") {
     console.log("⚠️ DETECTED TEST MERCHANT ID: Forcing Sandbox URL");
     PHONEPE_HOST_URL = "https://api-preprod.phonepe.com/apis/pg-sandbox";
 }
@@ -171,6 +172,7 @@ app.post('/api/pay', validatePayment, async (req, res) => {
             headers: {
                 'Content-Type': 'application/json',
                 'X-VERIFY': xVerify,
+                'X-MERCHANT-ID': MERCHANT_ID,
                 'accept': 'application/json'
             }
         });
