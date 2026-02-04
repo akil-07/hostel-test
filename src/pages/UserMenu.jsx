@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import Navbar from '../components/Navbar';
-import { ShoppingBag, Plus, Minus, Search, Clock, Calendar, MapPin, User, MessageSquare, X, Building, TrendingUp, Filter, Bell } from 'lucide-react';
+import { ShoppingBag, Plus, Minus, Search, Clock, Calendar, MapPin, User, MessageSquare, X, Building, TrendingUp, Filter, Bell, Zap } from 'lucide-react';
 import { subscribeToNotifications } from '../lib/notifications';
 import { db, auth } from '../lib/firebase';
-import { collection, getDocs, addDoc, updateDoc, doc, increment, getDoc, query, where, orderBy, limit } from 'firebase/firestore';
+import { collection, getDocs, addDoc, updateDoc, doc, increment, getDoc, query, where, orderBy, limit, setDoc } from 'firebase/firestore';
 import { API_URL } from '../config';
 
 const UserMenu = () => {
@@ -236,6 +236,8 @@ const UserMenu = () => {
         setShowCheckout(true);
     };
 
+    const [paymentMethod, setPaymentMethod] = useState('online');
+
     const handlePayment = async () => {
         if (!orderDetails.name || !orderDetails.room || !orderDetails.hostelBlock || !orderDetails.time) {
             toast.error("Please fill in all required fields (Name, Room, Hostel Block, Delivery Time)");
@@ -249,17 +251,63 @@ const UserMenu = () => {
             phone: orderDetails.phone
         }));
 
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const userId = user.uid || "user_" + Date.now();
+        const orderId = "ORDER_" + Date.now();
+
+        // Prepare Item Snapshot
+        const itemSnapshot = Object.entries(cart).map(([id, count]) => {
+            const i = items.find(x => String(x.id) === String(id));
+            return { id, name: i?.name || 'Unknown Item', price: i?.price || 0, wholesalePrice: i?.wholesalePrice || 0, count };
+        });
+
+        // --- CASH ON DELIVERY FLOW ---
+        if (paymentMethod === 'cod') {
+            try {
+                // Generate a random 4-digit OTP for delivery verification
+                const deliveryOtp = Math.floor(1000 + Math.random() * 9000).toString();
+
+                // CREATE ORDER IN FIRESTORE
+                // Note: Ensure setDoc is imported from firebase/firestore
+                await setDoc(doc(db, "orders", orderId), {
+                    orderId: orderId,
+                    userId: userId,
+                    userDetails: orderDetails,
+                    items: cart,
+                    itemSnapshot: itemSnapshot,
+                    totalAmount: totalAmount,
+                    status: 'pending',
+                    paymentMode: 'COD',
+                    paymentStatus: 'Pending',
+                    deliveryOtp: deliveryOtp,
+                    timestamp: new Date(), // Using JS Date for simplicity and to match other parts if serverTimestamp missing
+                    createdAt: new Date()
+                });
+
+                // Clear Cart
+                setCart({});
+                setShowCheckout(false);
+                toast.success("Order Placed Successfully! please pay on delivery.");
+
+                // Optional: Trigger Notification
+                fetch(`${API_URL}/api/send-notification`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title: "New Order (COD)", message: `New COD Order for ₹${totalAmount} from ${orderDetails.name}` })
+                }).catch(e => console.log("Notify fail", e));
+
+                // Redirect to Orders page
+                window.location.href = '/orders';
+
+            } catch (error) {
+                console.error("COD Error", error);
+                toast.error("Failed to place order. Try again.");
+            }
+            return;
+        }
+
+        // --- ONLINE PAYMENT FLOW ---
         try {
-            const orderId = "ORDER_" + Date.now();
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            const userId = user.uid || "user_" + Date.now(); // Fallback if no UID
-
-            // Prepare Item Snapshot for consistency
-            const itemSnapshot = Object.entries(cart).map(([id, count]) => {
-                const i = items.find(x => String(x.id) === String(id));
-                return { id, name: i?.name || 'Unknown Item', price: i?.price || 0, count };
-            });
-
             // Save Pending Data to LocalStorage (to retrieve after redirect)
             const pendingData = {
                 userDetails: orderDetails,
@@ -278,12 +326,6 @@ const UserMenu = () => {
             } catch (e) { console.log("Push check failed", e); }
 
             // Call Backend to Initiate Payment
-            // Dynamic Backend URL based on current hostname
-            // const protocol = window.location.protocol;
-            // const hostname = window.location.hostname;
-            // const port = 5000; // Backend is always on 5000
-            // const backendUrl = `${protocol}//${hostname}:${port}`;
-            // const backendUrl = `${protocol}//${hostname}:${port}`;
             const backendUrl = API_URL;
 
             const res = await fetch(`${backendUrl}/api/pay`, {
@@ -303,11 +345,6 @@ const UserMenu = () => {
                 window.location.href = data.url;
             } else {
                 console.error("No redirect URL received:", data);
-                if (data.details) {
-                    alert("Payment Failed: " + JSON.stringify(data.details));
-                } else {
-                    alert("Payment Server Error: " + (data.error || "Unknown Error"));
-                }
                 toast.error("Payment initiation failed at server.");
             }
 
@@ -702,33 +739,67 @@ const UserMenu = () => {
                                     </div>
                                 </div>
 
-                                <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '0.5rem' }}>
-                                    <div className="flex-between" style={{ marginBottom: '1rem' }}>
-                                        <span style={{ color: 'var(--text-muted)' }}>Total Amount:</span>
-                                        <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)' }}>₹{totalAmount}</span>
-                                    </div>
+
+                            </div>
+
+                            {/* Payment Method Selection */}
+                            {storeStatus.codEnabled && (
+                                <div className="input-group">
+                                    <label className="label">Payment Method</label>
                                     <div style={{ display: 'flex', gap: '1rem' }}>
-                                        <button
-                                            onClick={() => setShowCheckout(false)}
-                                            className="btn btn-secondary"
-                                            style={{ flex: 1, fontSize: '1.1rem', borderColor: 'var(--border)' }}
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            onClick={handlePayment}
-                                            className="btn btn-primary"
-                                            style={{ flex: 2, fontSize: '1.1rem', background: '#5f259f' }}
-                                        >
-                                            Place Order
-                                        </button>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', padding: '0.5rem', border: `1px solid ${paymentMethod === 'online' ? 'var(--primary)' : 'var(--border)'}`, borderRadius: 'var(--radius)', flex: 1, background: paymentMethod === 'online' ? 'rgba(79, 70, 229, 0.1)' : 'transparent' }}>
+                                            <input
+                                                type="radio"
+                                                name="paymentMethod"
+                                                value="online"
+                                                checked={paymentMethod === 'online'}
+                                                onChange={() => setPaymentMethod('online')}
+                                            />
+                                            <Zap size={18} color="var(--primary)" />
+                                            <span style={{ fontWeight: 'bold' }}>Online (PhonePe)</span>
+                                        </label>
+
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', padding: '0.5rem', border: `1px solid ${paymentMethod === 'cod' ? 'var(--success)' : 'var(--border)'}`, borderRadius: 'var(--radius)', flex: 1, background: paymentMethod === 'cod' ? 'rgba(16, 185, 129, 0.1)' : 'transparent' }}>
+                                            <input
+                                                type="radio"
+                                                name="paymentMethod"
+                                                value="cod"
+                                                checked={paymentMethod === 'cod'}
+                                                onChange={() => setPaymentMethod('cod')}
+                                            />
+                                            <ShoppingBag size={18} color="var(--success)" />
+                                            <span style={{ fontWeight: 'bold' }}>Cash on Delivery</span>
+                                        </label>
                                     </div>
+                                </div>
+                            )}
+
+                            <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '0.5rem' }}>
+                                <div className="flex-between" style={{ marginBottom: '1rem' }}>
+                                    <span style={{ color: 'var(--text-muted)' }}>Total Amount:</span>
+                                    <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)' }}>₹{totalAmount}</span>
+                                </div>
+                                <div style={{ display: 'flex', gap: '1rem' }}>
+                                    <button
+                                        onClick={() => setShowCheckout(false)}
+                                        className="btn btn-secondary"
+                                        style={{ flex: 1, fontSize: '1.1rem', borderColor: 'var(--border)' }}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handlePayment}
+                                        className="btn btn-primary"
+                                        style={{ flex: 2, fontSize: '1.1rem', background: '#5f259f' }}
+                                    >
+                                        Place Order
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
-                )
-            }
+                )}
+
             {/* DEBUG PANEL - REMOVE BEFORE FINAL LAUNCH */}
             <div style={{ marginTop: '3rem', padding: '1rem', background: '#f8f9fa', border: '2px dashed #ccc', borderRadius: '8px', fontSize: '0.8rem', color: '#666' }}>
                 <h5 style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>🔧 Connection Troubleshooter</h5>
@@ -753,7 +824,7 @@ const UserMenu = () => {
                     Test Server Connection
                 </button>
             </div>
-        </div >
+        </div>
     );
 };
 

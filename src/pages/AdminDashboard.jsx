@@ -10,7 +10,7 @@ const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('orders'); // 'items' or 'orders'
     const [items, setItems] = useState([]);
     const [orders, setOrders] = useState([]);
-    const [newItem, setNewItem] = useState({ name: '', price: '', stock: '', category: '' });
+    const [newItem, setNewItem] = useState({ name: '', price: '', wholesalePrice: '', stock: '', category: '' });
     const [categories, setCategories] = useState([]);
     const [newCategory, setNewCategory] = useState('');
     const [imageFile, setImageFile] = useState(null);
@@ -19,18 +19,65 @@ const AdminDashboard = () => {
     const [fetchLoading, setFetchLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
 
-    // OTP Modal State
     const [otpModal, setOtpModal] = useState({ isOpen: false, orderId: null });
     const [otpInput, setOtpInput] = useState('');
 
+    const [selectedOrders, setSelectedOrders] = useState([]);
+
     const [storeStatus, setStoreStatus] = useState({ status: 'now', message: '' });
 
-    useEffect(() => {
-        if (activeTab === 'items') {
-            fetchItems();
-            fetchCategories();
+    // ... useEffects ...
+
+    // ... existing functions ...
+
+    // Helper to toggle selection
+    const toggleSelectOrder = (id) => {
+        setSelectedOrders(prev =>
+            prev.includes(id) ? prev.filter(oid => oid !== id) : [...prev, id]
+        );
+    };
+
+    const deleteSelected = async () => {
+        if (selectedOrders.length === 0) return;
+        if (!window.confirm(`Permanently delete ${selectedOrders.length} orders?`)) return;
+
+        setLoading(true);
+        try {
+            await Promise.all(selectedOrders.map(id => deleteDoc(doc(db, "orders", id))));
+            setOrders(orders.filter(o => !selectedOrders.includes(o.id)));
+            setSelectedOrders([]);
+            toast.success("Selected orders deleted forever");
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to delete selected orders");
         }
-        else fetchOrders();
+        setLoading(false);
+    };
+
+    const deleteAllPermanent = async () => {
+        const archivedOrders = orders.filter(o => o.archived);
+        if (archivedOrders.length === 0) return;
+        if (!window.confirm(`WARNING: This will PERMANENTLY DELETE ALL ${archivedOrders.length} archived orders. They cannot be recovered. Continue?`)) return;
+
+        setLoading(true);
+        try {
+            await Promise.all(archivedOrders.map(o => deleteDoc(doc(db, "orders", o.id))));
+            setOrders(orders.filter(o => !o.archived));
+            setSelectedOrders([]);
+            toast.success("All archived orders deleted forever");
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to delete all archived orders");
+        }
+        setLoading(false);
+    };
+
+    useEffect(() => {
+        if (activeTab === 'items' || activeTab === 'analytics') {
+            fetchItems();
+            if (activeTab === 'items') fetchCategories();
+        }
+        if (activeTab !== 'items') fetchOrders();
         fetchStoreStatus();
     }, [activeTab]);
 
@@ -242,12 +289,13 @@ const AdminDashboard = () => {
             await addDoc(collection(db, "items"), {
                 name: newItem.name,
                 price: Number(newItem.price),
+                wholesalePrice: Number(newItem.wholesalePrice),
                 stock: Number(newItem.stock),
                 category: newItem.category || 'General',
                 image: imageUrl,
                 createdAt: new Date()
             });
-            setNewItem({ name: '', price: '', stock: '', category: '' }); setImageFile(null);
+            setNewItem({ name: '', price: '', wholesalePrice: '', stock: '', category: '' }); setImageFile(null);
             await fetchItems();
             toast.success("Item added successfully!");
         } catch (error) {
@@ -435,6 +483,39 @@ const AdminDashboard = () => {
                     </div>
                 </div>
 
+                {/* COD Status Card */}
+                <div className="card" style={{ marginBottom: '2rem', background: 'var(--bg-surface)' }}>
+                    <div className="flex-between">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <span style={{ fontWeight: 600 }}>Accept Cash on Delivery:</span>
+                            <span className="badge" style={{
+                                background: storeStatus.codEnabled ? 'var(--success)' : 'var(--text-muted)',
+                                color: 'white'
+                            }}>
+                                {storeStatus.codEnabled ? 'ENABLED' : 'DISABLED'}
+                            </span>
+                        </div>
+                        <button
+                            className={`btn ${storeStatus.codEnabled ? 'btn-primary' : 'btn-outline'}`}
+                            onClick={async () => {
+                                try {
+                                    const newStatus = !storeStatus.codEnabled;
+                                    await setDoc(doc(db, "settings", "global"), {
+                                        ...storeStatus,
+                                        codEnabled: newStatus
+                                    });
+                                    setStoreStatus({ ...storeStatus, codEnabled: newStatus });
+                                    toast.success(`COD ${newStatus ? 'Enabled' : 'Disabled'}`);
+                                } catch (e) {
+                                    toast.error("Failed to update COD settings");
+                                }
+                            }}
+                        >
+                            {storeStatus.codEnabled ? 'Disable COD' : 'Enable COD'}
+                        </button>
+                    </div>
+                </div>
+
                 {activeTab === 'items' && (
                     <div className="grid-responsive">
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -485,12 +566,16 @@ const AdminDashboard = () => {
                                             <option value="General">General</option>
                                         </select>
                                     </div>
-                                    <div style={{ display: 'flex', gap: '1rem' }}>
-                                        <div style={{ flex: 1 }}>
-                                            <label className="label">Price (₹)</label>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', alignItems: 'end' }}>
+                                        <div>
+                                            <label className="label">Wholesale Price (₹)</label>
+                                            <input type="number" className="input" value={newItem.wholesalePrice} onChange={(e) => setNewItem({ ...newItem, wholesalePrice: e.target.value })} placeholder="Cost Price" />
+                                        </div>
+                                        <div>
+                                            <label className="label">Selling Price (₹)</label>
                                             <input type="number" className="input" value={newItem.price} onChange={(e) => setNewItem({ ...newItem, price: e.target.value })} required />
                                         </div>
-                                        <div style={{ flex: 1 }}>
+                                        <div>
                                             <label className="label">Stock</label>
                                             <input type="number" className="input" value={newItem.stock} onChange={(e) => setNewItem({ ...newItem, stock: e.target.value })} required />
                                         </div>
@@ -521,7 +606,12 @@ const AdminDashboard = () => {
                                                     <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{item.category}</p>
                                                     <p style={{ color: 'var(--text-muted)' }}>Stock: {item.stock}</p>
                                                 </div>
-                                                <div style={{ fontWeight: 'bold', color: 'var(--accent)' }}>₹{item.price}</div>
+                                                <div style={{ textAlign: 'right' }}>
+                                                    <div style={{ fontWeight: 'bold', color: 'var(--accent)' }}>₹{item.price}</div>
+                                                    {item.wholesalePrice && (
+                                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Buy: ₹{item.wholesalePrice}</div>
+                                                    )}
+                                                </div>
                                                 <button onClick={() => handleRestock(item)} className="btn btn-secondary" style={{ padding: '0.5rem', marginRight: '0.5rem', color: 'var(--success)' }} title="Restock">
                                                     <RefreshCcw size={16} />
                                                 </button>
@@ -580,6 +670,14 @@ const AdminDashboard = () => {
                                             </div>
                                             <div style={{ textAlign: 'right' }}>
                                                 <div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--primary)' }}>₹{order.totalAmount}</div>
+                                                <div style={{
+                                                    fontSize: '0.8rem',
+                                                    fontWeight: 'bold',
+                                                    color: order.paymentMode === 'COD' ? 'var(--warning)' : 'var(--success)',
+                                                    marginTop: '0.25rem'
+                                                }}>
+                                                    {order.paymentMode === 'COD' ? '💵 CASH ON DELIVERY' : '💳 PAID ONLINE'}
+                                                </div>
                                                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Time: {order.userDetails.time}</div>
                                             </div>
                                         </div>
@@ -716,6 +814,33 @@ const AdminDashboard = () => {
                                 </div>
                             </div>
                             <div className="card" style={{ textAlign: 'center', padding: '1.5rem' }}>
+                                <div style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Est. Net Profit</div>
+                                <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--success)' }}>
+                                    {(() => {
+                                        const totalProfit = orders.filter(o => o.status === 'completed').reduce((acc, order) => {
+                                            const orderProfit = (order.itemSnapshot || []).reduce((itemAcc, item) => {
+                                                const sellingPrice = Number(item.price) || 0;
+                                                // 1. Try snapshot, 2. Try current item list, 3. Fallback to 0 (Revenue=Profit if cost unknown)
+                                                // Ideally if cost unknown, we might not want to count it, but for now let's assume 0 cost if missing to avoid negative assumptions?
+                                                // Actually, if we don't know the cost, treating SellingPrice as Profit is WRONG but better than 0.
+                                                // Let's try to look up current item cost.
+                                                let wholesalePrice = item.wholesalePrice !== undefined ? Number(item.wholesalePrice) : undefined;
+
+                                                if (wholesalePrice === undefined || isNaN(wholesalePrice)) {
+                                                    const currentItem = items.find(i => i.id === item.id);
+                                                    wholesalePrice = currentItem ? Number(currentItem.wholesalePrice || 0) : 0;
+                                                }
+
+                                                const profitPerItem = sellingPrice - wholesalePrice;
+                                                return itemAcc + (profitPerItem * (item.count || 1));
+                                            }, 0);
+                                            return acc + orderProfit;
+                                        }, 0);
+                                        return `₹${totalProfit.toLocaleString()}`;
+                                    })()}
+                                </div>
+                            </div>
+                            <div className="card" style={{ textAlign: 'center', padding: '1.5rem' }}>
                                 <div style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Total Orders</div>
                                 <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>{orders.length}</div>
                             </div>
@@ -791,14 +916,55 @@ const AdminDashboard = () => {
                                 <p style={{ fontStyle: 'italic', opacity: 0.7 }}>No archived orders found.</p>
                             ) : (
                                 <div className="flex-col" style={{ gap: '0.5rem' }}>
+                                    {/* Bulk Actions */}
+                                    <div className="flex-between" style={{ marginBottom: '0.5rem' }}>
+                                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                                            <input
+                                                type="checkbox"
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setSelectedOrders(orders.filter(o => o.archived).map(o => o.id));
+                                                    } else {
+                                                        setSelectedOrders([]);
+                                                    }
+                                                }}
+                                                checked={orders.filter(o => o.archived).length > 0 && selectedOrders.length === orders.filter(o => o.archived).length}
+                                                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                                            />
+                                            <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Select All</span>
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            {selectedOrders.length > 0 && (
+                                                <button onClick={deleteSelected} className="btn btn-danger btn-sm" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                                    <Trash2 size={16} /> Delete Selected ({selectedOrders.length})
+                                                </button>
+                                            )}
+                                            <button onClick={deleteAllPermanent} className="btn btn-outline btn-sm" style={{ color: 'var(--danger)', borderColor: 'var(--danger)' }}>
+                                                Clear All Archived
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Table Header */}
                                     <div className="flex-between" style={{ padding: '0.5rem', borderBottom: '1px solid var(--border)', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                                        <div style={{ width: '40px' }}></div>
                                         <div style={{ flex: 1 }}>Date</div>
                                         <div style={{ flex: 1 }}>User</div>
                                         <div style={{ flex: 1, textAlign: 'right' }}>Amount</div>
                                         <div style={{ width: '150px', textAlign: 'right' }}>Actions</div>
                                     </div>
+
+                                    {/* Rows */}
                                     {orders.filter(o => o.archived).sort((a, b) => b.timestamp.seconds - a.timestamp.seconds).map(order => (
-                                        <div key={order.id} className="flex-between" style={{ padding: '0.75rem', background: 'var(--bg-body)', borderRadius: '4px' }}>
+                                        <div key={order.id} className="flex-between" style={{ padding: '0.75rem', background: selectedOrders.includes(order.id) ? 'rgba(239, 68, 68, 0.1)' : 'var(--bg-body)', borderRadius: '4px', border: selectedOrders.includes(order.id) ? '1px solid var(--danger)' : 'none' }}>
+                                            <div style={{ width: '40px', display: 'flex', alignItems: 'center' }}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedOrders.includes(order.id)}
+                                                    onChange={() => toggleSelectOrder(order.id)}
+                                                    style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                                                />
+                                            </div>
                                             <div style={{ flex: 1, fontSize: '0.9rem' }}>
                                                 {new Date(order.timestamp.seconds * 1000).toLocaleDateString()}
                                             </div>
