@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import Navbar from '../components/Navbar';
-import { ShoppingBag, Plus, Minus, Search, Clock, Calendar, MapPin, User, MessageSquare, X, Building, TrendingUp, Filter, Bell, Zap } from 'lucide-react';
+import { ShoppingBag, Plus, Minus, Search, Clock, Calendar, MapPin, User, MessageSquare, X, Building, TrendingUp, Filter, Bell, Zap, Home } from 'lucide-react';
 import { subscribeToNotifications } from '../lib/notifications';
 import { db, auth } from '../lib/firebase';
 import { collection, getDocs, addDoc, updateDoc, doc, increment, getDoc, query, where, orderBy, limit, setDoc } from 'firebase/firestore';
 import { API_URL } from '../config';
 
 const UserMenu = () => {
+    const navigate = useNavigate();
     const [items, setItems] = useState([]);
     const [categories, setCategories] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState('All');
@@ -51,6 +53,7 @@ const UserMenu = () => {
 
     // Checkout State
     const [showCheckout, setShowCheckout] = useState(false);
+    const [showCartPreview, setShowCartPreview] = useState(false);
     const [orderDetails, setOrderDetails] = useState({
         name: '',
         room: '',
@@ -85,6 +88,12 @@ const UserMenu = () => {
     };
 
     const [storeStatus, setStoreStatus] = useState({ status: 'now', message: '' });
+
+    useEffect(() => {
+        if (Object.keys(cart).length === 0 && showCartPreview) {
+            setShowCartPreview(false);
+        }
+    }, [cart, showCartPreview]);
 
     useEffect(() => {
         // Fetch store status
@@ -354,135 +363,113 @@ const UserMenu = () => {
         }
     };
 
+    // --- UI HELPERS ---
+    const getCategoryImage = (catName) => {
+        const map = {
+            'All': 'https://cdn-icons-png.flaticon.com/512/706/706164.png',
+            'Snacks': 'https://cdn-icons-png.flaticon.com/512/2515/2515183.png',
+            'Drinks': 'https://cdn-icons-png.flaticon.com/512/2405/2405597.png',
+            'Meals': 'https://cdn-icons-png.flaticon.com/512/6030/6030105.png',
+            'Biryani': 'https://cdn-icons-png.flaticon.com/512/4422/4422233.png',
+            'Pizza': 'https://cdn-icons-png.flaticon.com/512/3595/3595455.png',
+            'Burger': 'https://cdn-icons-png.flaticon.com/512/1147/1147610.png'
+        };
+        return map[catName] || 'https://cdn-icons-png.flaticon.com/512/3075/3075977.png';
+    };
+
     return (
-        <div className="min-h-screen" style={{ paddingBottom: '100px' }}>
-            <Navbar role="user" />
-            <div className="container" style={{ padding: '2rem 0' }}>
+        <div style={{ minHeight: '100vh', background: 'var(--bg-body)', paddingBottom: '90px' }}>
 
-                <div className="flex-between" style={{ marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
-                    <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                            <h2 style={{ fontSize: '2rem', fontWeight: '800', fontStyle: 'italic', letterSpacing: '-1px' }}>Menu</h2>
-                            <button
-                                onClick={handleEnableNotifications}
-                                className="btn btn-sm btn-outline"
-                                style={{ borderRadius: '50%', padding: '0.5rem', borderColor: notiEnabled ? 'var(--success)' : 'var(--border)' }}
-                                title={notiEnabled ? "Notifications Active" : "Enable Notify"}
-                            >
-                                <Bell size={18} color={notiEnabled ? 'var(--success)' : 'var(--text-muted)'} />
-                            </button>
-                        </div>
-                        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>Order your favorites instantly</p>
-                    </div>
-
-                    {/* Store Status Banner */}
-                    {storeStatus.status === 'later' && (
-                        <div className="animate-fade-in" style={{ width: '100%', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid var(--danger)', borderRadius: 'var(--radius)', padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                            <Clock size={24} color="var(--danger)" />
-                            <div>
-                                <h4 style={{ color: 'var(--danger)', fontWeight: 'bold' }}>Not Delivering Now</h4>
-                                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                                    Next delivery expected at: <span style={{ color: 'var(--text-main)', fontWeight: 'bold' }}>{storeStatus.message}</span>
-                                </p>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Active Order Banner */}
-                    {activeOrder && (
-                        <div className="animate-fade-in" style={{ width: '100%', background: 'var(--bg-card)', border: '1px solid var(--accent)', borderRadius: 'var(--radius)', padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: 'var(--shadow-sm)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                <div style={{ background: 'var(--accent)', padding: '0.5rem', borderRadius: '50%' }}>
-                                    <Clock size={20} color="white" />
-                                </div>
-                                <div>
-                                    <h4 style={{ fontWeight: 'bold', fontSize: '1rem' }}>Order in progress</h4>
-                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Status: <span style={{ color: 'var(--accent)', fontWeight: 'bold', textTransform: 'uppercase' }}>{activeOrder.status}</span></p>
-                                </div>
-                            </div>
-                            <div style={{ textAlign: 'right' }}>
-                                <div style={{ fontWeight: 'bold' }}>{activeOrder.paymentId ? activeOrder.paymentId.slice(-4) : ''}</div>
-                                <a href="/orders" style={{ fontSize: '0.8rem', color: 'var(--primary)', textDecoration: 'underline' }}>View</a>
-                            </div>
-                        </div>
-                    )}
-
-                    <div style={{ display: 'flex', gap: '0.5rem', width: '100%', maxWidth: '400px', flexWrap: 'wrap' }}>
-                        <div style={{ position: 'relative', flex: 1, minWidth: '150px' }}>
-                            <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                            <input
-                                className="input"
-                                style={{ paddingLeft: '40px' }}
-                                placeholder="Search snacks..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                        </div>
-
-                        <div style={{ position: 'relative', minWidth: '140px' }}>
-                            <Filter size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                            <select
-                                className="input"
-                                style={{ paddingLeft: '40px', cursor: 'pointer', appearance: 'none', background: 'var(--bg-card)' }}
-                                value={sortBy}
-                                onChange={(e) => setSortBy(e.target.value)}
-                            >
-                                <option value="relevant">Relevant</option>
-                                <option value="sales">Top Selling</option>
-                                <option value="priceLow">Price: Low to High</option>
-                                <option value="priceHigh">Price: High to Low</option>
-                            </select>
+            {/* Mobile Header */}
+            <div className="container" style={{ paddingTop: '1rem', paddingBottom: '0.5rem' }}>
+                <div className="flex-between">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <MapPin size={24} color="var(--primary)" fill="var(--primary-light)" />
+                        <div className="flex-col">
+                            <span style={{ fontSize: '1rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                SAVEETHA HOSTELS
+                            </span>
+                            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 500 }}>
+                                {orderDetails.hostelBlock || "Select Location"}
+                            </span>
                         </div>
                     </div>
+                    {/* Profile Icon */}
+                    <div
+                        style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden' }}
+                        onClick={() => toast("Profile clicked")}
+                    >
+                        <User size={20} color="var(--text-main)" />
+                    </div>
+                </div>
+
+                {/* Search Bar */}
+                <div style={{ marginTop: '1rem', position: 'relative' }}>
+                    <Search size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)' }} />
+                    <input
+                        className="input"
+                        placeholder="Search for snacks, drinks, or munchies..."
+                        style={{ paddingLeft: '3rem', borderRadius: '12px', boxShadow: 'var(--shadow-sm)', background: 'white', border: '1px solid var(--border)', fontSize: '0.95rem' }}
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                    />
                 </div>
             </div>
 
-            {/* Categories Notch (Scrollable) */}
-            <div style={{
-                display: 'flex',
-                gap: '0.75rem',
-                overflowX: 'auto',
-                paddingBottom: '0.5rem',
-                marginBottom: '1.5rem',
-                scrollbarWidth: 'none', /* Firefox */
-                msOverflowStyle: 'none',  /* IE 10+ */
-                '::-webkit-scrollbar': { display: 'none' }
-            }}>
-                <style>{`
-                        .category-pill {
-                            white-space: nowrap;
-                            padding: 0.5rem 1.25rem;
-                            border-radius: 50px;
-                            background: var(--bg-card);
-                            border: 1px solid var(--border);
-                            color: var(--text-muted);
-                            font-weight: 500;
-                            cursor: pointer;
-                            transition: all 0.3s ease;
-                            user-select: none;
-                        }
-                        .category-pill.active {
-                            background: var(--primary);
-                            color: white;
-                            border-color: var(--primary);
-                            transform: scale(1.05);
-                            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
-                        }
-                        .category-pill:hover:not(.active) {
-                            background: var(--bg-surface);
-                            border-color: var(--text-muted);
-                        }
-                    `}</style>
-                {categories.map((cat, idx) => (
-                    <div
-                        key={idx}
-                        className={`category-pill ${selectedCategory === cat ? 'active' : ''}`}
-                        onClick={() => setSelectedCategory(cat)}
-                    >
-                        {cat}
-                    </div>
-                ))}
+            {/* Categories - Horizontal Scroll */}
+            <div className="container" style={{ marginTop: '1.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h3 style={{ fontSize: '1.1rem', letterSpacing: '0.5px' }}>Eat what makes you happy</h3>
+                </div>
+                <div className="hide-scrollbar" style={{ display: 'flex', gap: '1.5rem', overflowX: 'auto', paddingBottom: '0.5rem', scrollBehavior: 'smooth' }}>
+                    {categories.map(cat => (
+                        <div key={cat} className="flex-col flex-center" style={{ minWidth: '76px', cursor: 'pointer' }} onClick={() => setSelectedCategory(cat)}>
+                            <div className="category-avatar flex-center" style={{
+                                border: selectedCategory === cat ? '3px solid var(--primary-light)' : 'none',
+                                background: selectedCategory === cat ? '#fff' : 'var(--bg-subtle)',
+                                boxShadow: selectedCategory === cat ? 'var(--shadow-md)' : 'none',
+                                width: '76px', height: '76px'
+                            }}>
+                                <img src={getCategoryImage(cat)} alt={cat} style={{ width: '42px', height: '42px', objectFit: 'contain' }} />
+                            </div>
+                            <span style={{
+                                fontSize: '0.85rem',
+                                marginTop: '0.4rem',
+                                fontWeight: selectedCategory === cat ? 700 : 500,
+                                color: selectedCategory === cat ? 'var(--text-main)' : 'var(--text-muted)'
+                            }}>{cat}</span>
+                        </div>
+                    ))}
+                </div>
             </div>
+
+            {/* Store Status Banner */}
+            {storeStatus.status !== 'now' && (
+                <div className="container" style={{ marginTop: '1rem' }}>
+                    <div className="card" style={{ background: '#FFF3CD', borderColor: '#ffeeba', padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <Clock size={20} color="#856404" />
+                        <div>
+                            <div style={{ fontWeight: 'bold', color: '#856404' }}>Store is Offline</div>
+                            <div style={{ fontSize: '0.8rem', color: '#856404' }}>{storeStatus.message || "We are currently closed."}</div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Active Order Banner */}
+            {activeOrder && (
+                <div className="container" style={{ marginTop: '1rem' }}>
+                    <div className="card" style={{ padding: '1rem', background: 'var(--primary-light)', border: '1px solid var(--primary)' }}>
+                        <div className="flex-between">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <Clock size={20} color="var(--primary)" />
+                                <span style={{ fontWeight: 700, color: 'var(--primary)' }}>Order in Progress</span>
+                            </div>
+                            <a href="/orders" className="btn btn-sm btn-primary">Track Order</a>
+                        </div>
+                    </div>
+                </div>
+            )}
 
 
 
@@ -539,290 +526,317 @@ const UserMenu = () => {
                 )
             }
 
-            {
-                loading ? (
-                    <p style={{ color: 'var(--text-muted)' }}>Loading menu...</p>
-                ) : (
-                    <div className="grid-responsive">
-                        {filteredItems.length === 0 && (
-                            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
-                                <p>No items found in stock.</p>
-                                <button className="btn btn-outline btn-sm" onClick={fetchItems} style={{ marginTop: '1rem' }}>
-                                    Retry Loading
-                                </button>
-                            </div>
-                        )}
-                        {filteredItems.map(item => (
-                            <div key={item.id} className="card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', border: 'none', boxShadow: 'var(--shadow-sm)' }}>
-                                <div style={{ height: '200px', overflow: 'hidden' }}>
-                                    <img
-                                        src={item.image}
-                                        alt={item.name}
-                                        style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s' }}
-                                        onMouseOver={e => e.currentTarget.style.transform = 'scale(1.1)'}
-                                        onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
-                                    />
-                                </div>
-                                <div style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                                    <div className="flex-between" style={{ marginBottom: '0.5rem' }}>
-                                        <h3 style={{ fontWeight: 600 }}>{item.name}</h3>
-                                        {item.category && <span className="badge badge-secondary" style={{ fontSize: '0.7rem' }}>{item.category}</span>}
-                                    </div>
-                                    <div className="flex-between" style={{ marginBottom: '1rem', alignItems: 'flex-end' }}>
-                                        <p style={{ color: 'var(--text-main)', fontWeight: 'bold', fontSize: '1.1rem' }}>₹{item.price}</p>
-                                    </div>
+            {/* Main Items Grid */}
+            <div className="container" style={{ marginTop: '2rem', paddingBottom: '12rem' }}>
+                <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', letterSpacing: '0.5px' }}>{filteredItems.length} Items Available</h3>
 
-                                    <div style={{ marginTop: 'auto' }}>
-                                        {item.stock <= 0 ? (
-                                            <button className="btn btn-secondary" style={{ width: '100%', opacity: 0.5, cursor: 'not-allowed' }} disabled>
-                                                Out of Stock
-                                            </button>
-                                        ) : getItemCount(item.id) === 0 ? (
-                                            <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => addToCart(item.id)}>
-                                                Add to Cart
-                                            </button>
-                                        ) : (
-                                            <div className="flex-between" style={{ background: 'var(--bg-main)', borderRadius: 'var(--radius-sm)', padding: '0.25rem', border: '1px solid var(--border)' }}>
-                                                <button className="btn" onClick={() => removeFromCart(item.id)}><Minus size={16} /></button>
-                                                <span style={{ fontWeight: 600 }}>{getItemCount(item.id)}</span>
-                                                <button className="btn" onClick={() => addToCart(item.id)} disabled={getItemCount(item.id) >= item.stock}><Plus size={16} /></button>
-                                            </div>
-                                        )}
+                {loading ? <p>Loading delicious food...</p> : (
+                    <div className="grid-responsive" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '1rem' }}>
+                        {filteredItems.map(item => (
+                            <div key={item.id} className="card" style={{ position: 'relative', borderRadius: '16px', border: 'none', boxShadow: 'var(--shadow-md)', marginBottom: '1rem' }}>
+                                {/* Image Area */}
+                                <div style={{ height: '130px', background: 'var(--bg-subtle)', position: 'relative' }}>
+                                    <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    {/* Promoted / Discount Badge */}
+                                    <div style={{ position: 'absolute', top: '6px', left: '6px', background: 'rgba(0,0,0,0.6)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.6rem', fontWeight: 600, color: 'white', backdropFilter: 'blur(4px)' }}>
+                                        Promoted
+                                    </div>
+                                    <div style={{ position: 'absolute', bottom: '6px', right: '6px', background: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                                        <Clock size={10} /> {item.cookingTime || '15m'}
+                                    </div>
+                                    {item.stock <= 0 && (
+                                        <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: 'var(--text-muted)', fontSize: '1.5rem' }}>
+                                            SOLD OUT
+                                        </div>
+                                    )}
+                                    {/* Add Button Absolute Overlap */}
+                                    {cart[item.id] ? (
+                                        <div style={{ position: 'absolute', bottom: '-10px', right: '8px', display: 'flex', alignItems: 'center', background: 'white', padding: '4px', borderRadius: '8px', gap: '6px', boxShadow: '0 2px 8px rgba(0,0,0,0.12)', border: '1px solid var(--border)' }}>
+                                            <button onClick={(e) => { e.stopPropagation(); removeFromCart(item.id); }} style={{ padding: '2px', color: 'var(--text-secondary)' }}><Minus size={14} /></button>
+                                            <span style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--success)' }}>{cart[item.id]}</span>
+                                            <button onClick={(e) => { e.stopPropagation(); addToCart(item.id); }} style={{ padding: '2px', color: 'var(--success)' }}><Plus size={14} /></button>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); addToCart(item.id); }}
+                                            disabled={item.stock <= 0}
+                                            style={{
+                                                position: 'absolute', bottom: '-10px', right: '8px',
+                                                padding: '0.4rem 1.2rem',
+                                                background: item.stock <= 0 ? 'var(--bg-subtle)' : 'white',
+                                                color: item.stock <= 0 ? 'var(--text-muted)' : 'var(--danger)',
+                                                border: '1px solid var(--border)',
+                                                borderRadius: '8px',
+                                                fontWeight: 800,
+                                                boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                                                fontSize: '0.85rem'
+                                            }}
+                                        >
+                                            ADD
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* Content Area */}
+                                <div style={{ padding: '0.8rem', paddingTop: '1rem', paddingBottom: '1rem' }}>
+                                    <div className="flex-between" style={{ alignItems: 'flex-start', marginBottom: '0.2rem' }}>
+                                        <h4 style={{ fontSize: '0.95rem', fontWeight: 700, lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</h4>
+                                        <div className="badge-rating" style={{ background: 'var(--success)', color: 'white', padding: '2px 4px', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '1px' }}>
+                                            {item.rating || '4.2'} <span style={{ fontSize: '8px' }}>★</span>
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '60%' }}>
+                                            {item.category}
+                                        </p>
+                                        <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)' }}>₹{item.price}</span>
+                                    </div>
+                                    <div style={{ marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px dashed var(--border)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                        <TrendingUp size={11} color="#9c27b0" />
+                                        <span style={{ fontSize: '0.65rem', color: '#9c27b0', fontWeight: 600 }}>{Math.floor(Math.random() * 50) + 10}+ sold</span>
                                     </div>
                                 </div>
                             </div>
                         ))}
                     </div>
-                )
-            }
-
-            { }
-            <div className="floating-cart animate-fade-in">
-                {cartItemCount > 0 ? (
-                    <button
-                        className="btn btn-primary"
-                        style={{ padding: '1rem 2rem', borderRadius: '50px', boxShadow: '0 10px 25px -5px rgba(139, 92, 246, 0.6)' }}
-                        onClick={handleInitialCheckout}
-                    >
-                        <ShoppingBag size={20} /> Checkout ₹{totalAmount}
-                    </button>
-                ) : (
-                    <div style={{
-                        background: 'var(--bg-card)',
-                        padding: '1rem 2rem',
-                        borderRadius: '50px',
-                        border: '1px solid var(--border)',
-                        color: 'var(--text-muted)',
-                        boxShadow: 'var(--shadow-lg)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem'
-                    }}>
-                        <ShoppingBag size={20} /> Cart Empty
-                    </div>
                 )}
             </div>
 
-            {/* Checkout Modal */}
+            { }
+            {/* Bottom Navigation (Fixed) */}
+            <div className="bottom-nav">
+                <div className="nav-item active">
+                    <ShoppingBag size={24} />
+                    <span style={{ fontWeight: 600 }}>Delivery</span>
+                </div>
+                <div className="nav-item" onClick={() => navigate('/orders')}>
+                    <Clock size={24} />
+                    <span>History</span>
+                </div>
+                <div className="nav-item" onClick={() => toast("Profile feature coming soon!")}>
+                    <User size={24} />
+                    <span>Profile</span>
+                </div>
+            </div>
 
-            {
-                showCheckout && (
-                    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-                        <div className="card animate-fade-in" style={{ width: '100%', maxWidth: '420px', maxHeight: '85vh', overflowY: 'auto', padding: '2rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
-                            <div className="flex-between" style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
-                                <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>Delivery Details</h3>
-                                <button onClick={() => setShowCheckout(false)} className="btn btn-secondary" style={{ padding: '0.5rem' }}>
-                                    <X size={20} />
-                                </button>
-                            </div>
+            {/* Sticky Cart Footer when items in cart */}
+            {/* Floating Round Cart Button (FAB) */}
+            {Object.keys(cart).length > 0 && !showCartPreview && !showCheckout && (
+                <div style={{
+                    position: 'fixed',
+                    bottom: '6rem',
+                    right: '1.5rem',
+                    zIndex: 1000,
+                }}>
+                    <button
+                        onClick={() => setShowCartPreview(true)}
+                        className="animate-fade-in"
+                        style={{
+                            width: '64px',
+                            height: '64px',
+                            borderRadius: '50%',
+                            background: 'var(--primary)',
+                            color: 'white',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 6px 16px rgba(226, 55, 68, 0.4)',
+                            border: '4px solid white',
+                            position: 'relative'
+                        }}
+                    >
+                        <div style={{
+                            position: 'absolute',
+                            top: '-5px',
+                            right: '-5px',
+                            background: '#ffbe2e',
+                            color: '#1c1c1c',
+                            borderRadius: '50%',
+                            width: '24px',
+                            height: '24px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '0.8rem',
+                            fontWeight: 800,
+                            border: '2px solid white'
+                        }}>
+                            {cartItemCount}
+                        </div>
+                    </button>
+                </div>
+            )}
 
-                            <div className="flex-col" style={{ gap: '1rem' }}>
-                                <div className="input-group">
-                                    <label className="label">Full Name</label>
-                                    <div style={{ position: 'relative' }}>
-                                        <User size={20} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                                        <input
-                                            className="input" style={{ paddingLeft: '45px' }}
-                                            value={orderDetails.name}
-                                            onChange={e => setOrderDetails({ ...orderDetails, name: e.target.value })}
-                                            placeholder="Enter your name"
-                                        />
-                                    </div>
-                                </div>
+            {/* Cart Review Modal (Step 1) */}
+            {showCartPreview && (
+                <div className="modal-overlay" style={{ alignItems: 'flex-end', justifyContent: 'center' }}>
+                    <div className="card animate-slide-up" style={{ width: '100%', maxWidth: '600px', borderBottomLeftRadius: 0, borderBottomRightRadius: 0, borderTopLeftRadius: '24px', borderTopRightRadius: '24px', padding: 0, background: 'var(--bg-card)' }}>
+                        <div style={{ padding: '1.2rem 1.5rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <h3 style={{ fontSize: '1.2rem', fontWeight: 800 }}>Items in Cart</h3>
+                            <button onClick={() => setShowCartPreview(false)} className="btn btn-ghost" style={{ padding: '0.4rem', borderRadius: '50%', background: 'var(--bg-subtle)' }}><X size={20} /></button>
+                        </div>
 
-                                <div className="input-group">
-                                    <label className="label">Room Number</label>
-                                    <div style={{ position: 'relative' }}>
-                                        <MapPin size={20} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                                        <input
-                                            className="input" style={{ paddingLeft: '45px' }}
-                                            value={orderDetails.room}
-                                            onChange={e => setOrderDetails({ ...orderDetails, room: e.target.value })}
-                                            placeholder="e.g. A-302"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="input-group">
-                                    <label className="label">Phone Number</label>
-                                    <div style={{ position: 'relative' }}>
-                                        <User size={20} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                                        <input
-                                            className="input" style={{ paddingLeft: '45px' }}
-                                            value={orderDetails.phone}
-                                            onChange={e => setOrderDetails({ ...orderDetails, phone: e.target.value })}
-                                            placeholder="Enter phone number"
-                                            type="tel"
-                                        />
-                                    </div>
-                                </div>
-
-
-                                {/* Hostel Block Selection */}
-                                <div className="input-group">
-                                    <label className="label">Hostel Block</label>
-                                    <div style={{ position: 'relative' }}>
-                                        <Building size={20} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                                        <select
-                                            className="input"
-                                            style={{ paddingLeft: '45px', appearance: 'none', cursor: 'pointer', background: 'var(--bg-card)' }}
-                                            value={orderDetails.hostelBlock}
-                                            onChange={e => setOrderDetails({ ...orderDetails, hostelBlock: e.target.value })}
-                                        >
-                                            <option value="" disabled>Select Block</option>
-                                            <option value="Annex Hostel (1st years)">Annex Hostel (1st years)</option>
-                                            <option value="Noyyal Hostel (SEC, SIMATS)">Noyyal Hostel (SEC, SIMATS)</option>
-                                            <option value="Pornai Hostel (Girls)">Pornai Hostel (Girls)</option>
-                                            <option value="Vaigai Hostel (Boys, SIMATS)">Vaigai Hostel (Boys, SIMATS)</option>
-                                            <option value="Krishna Hostel (Girls, SIMATS)">Krishna Hostel (Girls, SIMATS)</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                                    <div className="input-group" style={{ flex: 1 }}>
-                                        <label className="label">Date</label>
-                                        <div style={{ position: 'relative' }}>
-                                            <Calendar size={20} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                                            <input
-                                                type="date"
-                                                className="input" style={{ paddingLeft: '45px' }}
-                                                value={orderDetails.date}
-                                                onChange={e => setOrderDetails({ ...orderDetails, date: e.target.value })}
-                                            />
+                        <div style={{ padding: '1.5rem', maxHeight: '50vh', overflowY: 'auto' }}>
+                            {Object.entries(cart).map(([itemId, quantity]) => {
+                                const item = items.find(i => i.id === itemId);
+                                if (!item) return null;
+                                return (
+                                    <div key={itemId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                            <img src={item.image} style={{ width: '50px', height: '50px', borderRadius: '8px', objectFit: 'cover' }} alt="" />
+                                            <div>
+                                                <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-main)' }}>{item.name}</div>
+                                                <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>₹{item.price}</div>
+                                            </div>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-subtle)', borderRadius: '8px', padding: '4px' }}>
+                                            <button onClick={() => removeFromCart(itemId)} style={{ padding: '4px', color: 'var(--primary)' }}><Minus size={16} /></button>
+                                            <span style={{ margin: '0 10px', fontWeight: 700, color: 'var(--text-main)' }}>{quantity}</span>
+                                            <button onClick={() => addToCart(itemId)} style={{ padding: '4px', color: 'var(--primary)' }}><Plus size={16} /></button>
                                         </div>
                                     </div>
-                                    <div className="input-group" style={{ flex: 1 }}>
-                                        <label className="label">Time</label>
-                                        <div style={{ position: 'relative' }}>
-                                            <Clock size={20} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                                            <input
-                                                type="time"
-                                                className="input" style={{ paddingLeft: '45px' }}
-                                                value={orderDetails.time}
-                                                onChange={e => setOrderDetails({ ...orderDetails, time: e.target.value })}
-                                            />
+                                );
+                            })}
+
+                            <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '2px dashed var(--border)' }}>
+                                <div className="flex-between" style={{ marginBottom: '0.5rem' }}>
+                                    <span style={{ color: 'var(--text-muted)' }}>Items Total</span>
+                                    <span style={{ fontWeight: 600 }}>₹{totalAmount}</span>
+                                </div>
+                                <div className="flex-between" style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
+                                    <span style={{ fontSize: '1.1rem', fontWeight: 800 }}>Grand Total</span>
+                                    <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--primary)' }}>₹{totalAmount}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style={{ padding: '1rem 1.5rem 2rem' }}>
+                            <button
+                                onClick={() => {
+                                    setShowCartPreview(false);
+                                    handleInitialCheckout();
+                                }}
+                                className="btn btn-primary"
+                                style={{ width: '100%', padding: '1rem', borderRadius: '12px', fontSize: '1.1rem', fontWeight: 800, letterSpacing: '0.5px' }}
+                            >
+                                Next: Delivery Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showCheckout && (
+                <div className="modal-overlay" style={{ alignItems: 'flex-end', justifyContent: 'center' }}>
+                    <div className="card animate-slide-up" style={{ width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto', borderBottomLeftRadius: 0, borderBottomRightRadius: 0, borderTopLeftRadius: '24px', borderTopRightRadius: '24px', padding: 0, background: 'var(--bg-card)' }}>
+                        <div style={{ padding: '1.5rem', background: 'var(--bg-subtle)', borderBottom: '1px solid var(--border)' }}>
+                            <div className="flex-between">
+                                <h3 style={{ fontSize: '1.2rem' }}>Detailed Bill</h3>
+                                <button onClick={() => setShowCheckout(false)} className="btn btn-ghost" style={{ padding: '0.4rem', borderRadius: '50%', background: 'var(--bg-card)' }}><X size={20} /></button>
+                            </div>
+                        </div>
+
+                        <div style={{ padding: '1.5rem' }}>
+                            {/* Items List */}
+                            {Object.entries(cart).map(([id, count]) => {
+                                const i = items.find(x => String(x.id) === String(id));
+                                return (
+                                    <div key={id} className="flex-between" style={{ marginBottom: '1.2rem' }}>
+                                        <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'flex-start' }}>
+                                            <div style={{ border: '1px solid var(--success)', width: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '4px', borderRadius: '2px' }}>
+                                                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--success)' }}></div>
+                                            </div>
+                                            <div>
+                                                <div style={{ fontWeight: 600, fontSize: '1rem' }}>{i?.name}</div>
+                                                <div style={{ fontSize: '0.9rem', color: 'var(--primary)' }}>₹{i?.price}</div>
+                                            </div>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', border: '1px solid var(--border)', padding: '4px 8px', borderRadius: '8px', background: 'white' }}>
+                                            <button onClick={() => removeFromCart(id)} style={{ color: 'var(--danger)' }}><Minus size={16} /></button>
+                                            <span style={{ fontWeight: 800, color: 'var(--success)' }}>{count}</span>
+                                            <button onClick={() => addToCart(id)} style={{ color: 'var(--success)' }}><Plus size={16} /></button>
                                         </div>
                                     </div>
+                                );
+                            })}
+
+                            {/* Bill Details */}
+                            <div style={{ marginTop: '2rem', padding: '1rem', background: 'var(--bg-subtle)', borderRadius: '12px' }}>
+                                <div className="flex-between" style={{ marginBottom: '0.5rem', fontSize: '0.9rem' }}>
+                                    <span>Item Total</span>
+                                    <span>₹{totalAmount}</span>
                                 </div>
-
-                                <div className="input-group">
-                                    <label className="label">Special Requests (Optional)</label>
-                                    <div style={{ position: 'relative' }}>
-                                        <MessageSquare size={20} style={{ position: 'absolute', left: '12px', top: '15px', color: 'var(--text-muted)' }} />
-                                        <textarea
-                                            className="input" style={{ paddingLeft: '45px', minHeight: '80px', resize: 'vertical' }}
-                                            value={orderDetails.notes}
-                                            onChange={e => setOrderDetails({ ...orderDetails, notes: e.target.value })}
-                                            placeholder="e.g. Extra spicy, no onions..."
-                                        />
-                                    </div>
+                                <div className="flex-between" style={{ marginBottom: '0.5rem', fontSize: '0.9rem' }}>
+                                    <span>Delivery Fee</span>
+                                    <span style={{ color: 'var(--success)' }}>FREE</span>
                                 </div>
-
-
+                                <div className="flex-between" style={{ marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px dashed var(--border)', fontWeight: 700, fontSize: '1.1rem' }}>
+                                    <span>To Pay</span>
+                                    <span>₹{totalAmount}</span>
+                                </div>
                             </div>
 
-                            {/* Payment Method Selection */}
-                            {storeStatus.codEnabled && (
-                                <div className="input-group">
-                                    <label className="label">Payment Method</label>
+                            {/* Address & Details Inputs */}
+                            <div style={{ marginTop: '2rem' }}>
+                                <h4 style={{ fontSize: '1rem', marginBottom: '1rem', fontWeight: 800 }}>Delivery details</h4>
+                                <div className="flex-col" style={{ gap: '1rem' }}>
+                                    <div className="input-group">
+                                        <input className="input" placeholder="Your Name" value={orderDetails.name} onChange={e => setOrderDetails({ ...orderDetails, name: e.target.value })} />
+                                    </div>
                                     <div style={{ display: 'flex', gap: '1rem' }}>
-                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', padding: '0.5rem', border: `1px solid ${paymentMethod === 'online' ? 'var(--primary)' : 'var(--border)'}`, borderRadius: 'var(--radius)', flex: 1, background: paymentMethod === 'online' ? 'rgba(79, 70, 229, 0.1)' : 'transparent' }}>
-                                            <input
-                                                type="radio"
-                                                name="paymentMethod"
-                                                value="online"
-                                                checked={paymentMethod === 'online'}
-                                                onChange={() => setPaymentMethod('online')}
-                                            />
-                                            <Zap size={18} color="var(--primary)" />
-                                            <span style={{ fontWeight: 'bold' }}>Online (PhonePe)</span>
-                                        </label>
+                                        <input className="input" placeholder="Room No" value={orderDetails.room} onChange={e => setOrderDetails({ ...orderDetails, room: e.target.value })} style={{ flex: 1 }} />
+                                        <input className="input" placeholder="Phone" value={orderDetails.phone} type="tel" onChange={e => setOrderDetails({ ...orderDetails, phone: e.target.value })} style={{ flex: 1 }} />
+                                    </div>
+                                    <select className="input" value={orderDetails.hostelBlock} onChange={e => setOrderDetails({ ...orderDetails, hostelBlock: e.target.value })}>
+                                        <option value="" disabled>Select Hostel Block</option>
+                                        <option value="Annex Hostel (1st years)">Annex Hostel (1st years)</option>
+                                        <option value="Noyyal Hostel (SEC, SIMATS)">Noyyal Hostel (SEC, SIMATS)</option>
+                                        <option value="Pornai Hostel (Girls)">Pornai Hostel (Girls)</option>
+                                        <option value="Vaigai Hostel (Boys, SIMATS)">Vaigai Hostel (Boys, SIMATS)</option>
+                                        <option value="Krishna Hostel (Girls, SIMATS)">Krishna Hostel (Girls, SIMATS)</option>
+                                    </select>
+                                    <div style={{ display: 'flex', gap: '1rem' }}>
+                                        <input type="date" className="input" value={orderDetails.date} onChange={e => setOrderDetails({ ...orderDetails, date: e.target.value })} style={{ flex: 1 }} />
+                                        <input type="time" className="input" value={orderDetails.time} onChange={e => setOrderDetails({ ...orderDetails, time: e.target.value })} style={{ flex: 1 }} />
+                                    </div>
+                                    <textarea className="input" placeholder="Notes (Optional)" value={orderDetails.notes} onChange={e => setOrderDetails({ ...orderDetails, notes: e.target.value })} style={{ minHeight: '60px' }} />
+                                </div>
+                            </div>
 
-                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', padding: '0.5rem', border: `1px solid ${paymentMethod === 'cod' ? 'var(--success)' : 'var(--border)'}`, borderRadius: 'var(--radius)', flex: 1, background: paymentMethod === 'cod' ? 'rgba(16, 185, 129, 0.1)' : 'transparent' }}>
-                                            <input
-                                                type="radio"
-                                                name="paymentMethod"
-                                                value="cod"
-                                                checked={paymentMethod === 'cod'}
-                                                onChange={() => setPaymentMethod('cod')}
-                                            />
-                                            <ShoppingBag size={18} color="var(--success)" />
-                                            <span style={{ fontWeight: 'bold' }}>Cash on Delivery</span>
+                            {/* Payment Method */}
+                            {storeStatus.codEnabled && (
+                                <div style={{ marginTop: '1.5rem', marginBottom: '2rem' }}>
+                                    <h4 style={{ fontSize: '1rem', marginBottom: '1rem', fontWeight: 800 }}>Payment Method</h4>
+                                    <div style={{ display: 'flex', gap: '1rem' }}>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', padding: '0.8rem', border: `1px solid ${paymentMethod === 'online' ? 'var(--primary)' : 'var(--border)'}`, borderRadius: '12px', flex: 1, background: paymentMethod === 'online' ? 'rgba(226, 55, 68, 0.05)' : 'transparent' }}>
+                                            <input type="radio" name="paymentMethod" value="online" checked={paymentMethod === 'online'} onChange={() => setPaymentMethod('online')} style={{ accentColor: 'var(--primary)' }} />
+                                            <Zap size={20} color="var(--primary)" />
+                                            <span style={{ fontWeight: '700', fontSize: '0.9rem' }}>Pay Online</span>
+                                        </label>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', padding: '0.8rem', border: `1px solid ${paymentMethod === 'cod' ? 'var(--success)' : 'var(--border)'}`, borderRadius: '12px', flex: 1, background: paymentMethod === 'cod' ? 'rgba(37, 156, 72, 0.05)' : 'transparent' }}>
+                                            <input type="radio" name="paymentMethod" value="cod" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} style={{ accentColor: 'var(--success)' }} />
+                                            <ShoppingBag size={20} color="var(--success)" />
+                                            <span style={{ fontWeight: '700', fontSize: '0.9rem' }}>Cash on Delivery</span>
                                         </label>
                                     </div>
                                 </div>
                             )}
 
-                            <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '0.5rem' }}>
-                                <div className="flex-between" style={{ marginBottom: '1rem' }}>
-                                    <span style={{ color: 'var(--text-muted)' }}>Total Amount:</span>
-                                    <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)' }}>₹{totalAmount}</span>
-                                </div>
-                                <div style={{ display: 'flex', gap: '1rem' }}>
-                                    <button
-                                        onClick={() => setShowCheckout(false)}
-                                        className="btn btn-secondary"
-                                        style={{ flex: 1, fontSize: '1.1rem', borderColor: 'var(--border)' }}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        onClick={handlePayment}
-                                        className="btn btn-primary"
-                                        style={{ flex: 2, fontSize: '1.1rem', background: '#5f259f' }}
-                                    >
-                                        Place Order
-                                    </button>
-                                </div>
-                            </div>
+                            <button
+                                onClick={handlePayment}
+                                className="btn btn-primary"
+                                style={{ width: '100%', padding: '1rem', fontSize: '1.2rem', borderRadius: '12px', background: 'linear-gradient(to right, #e23744, #d32f2f)', border: 'none' }}
+                            >
+                                Place Order
+                            </button>
                         </div>
                     </div>
-                )}
+                </div>
+            )}
 
-            {/* DEBUG PANEL - REMOVE BEFORE FINAL LAUNCH */}
-            <div style={{ marginTop: '3rem', padding: '1rem', background: '#f8f9fa', border: '2px dashed #ccc', borderRadius: '8px', fontSize: '0.8rem', color: '#666' }}>
-                <h5 style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>🔧 Connection Troubleshooter</h5>
-                <p><strong>Configured Backend:</strong> {API_URL}</p>
-                <button
-                    className="btn btn-sm btn-outline"
-                    onClick={async () => {
-                        try {
-                            const url = API_URL;
-                            toast.loading("Pinging Backend...");
-                            const res = await fetch(url + '/');
-                            const text = await res.text();
-                            toast.dismiss();
-                            toast.success("Connected! Response: " + text);
-                        } catch (e) {
-                            toast.dismiss();
-                            toast.error("Connection Failed: " + e.message);
-                            alert("Error Details: \n" + e.message + "\n\nTip: If this is 'Failed to fetch', it's likely a Mixed Content issue (HTTPS vs HTTP) or the server is down.");
-                        }
-                    }}
-                >
-                    Test Server Connection
-                </button>
+            {/* DEBUG PANEL - Keep simple */}
+            <div style={{ marginTop: '3rem', padding: '1rem', textAlign: 'center', opacity: 0.5, fontSize: '0.7rem' }}>
+                <p>Backend: {API_URL}</p>
             </div>
         </div>
     );

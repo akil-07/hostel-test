@@ -420,62 +420,100 @@ const AdminDashboard = () => {
             <Navbar role="admin" />
             <div className="container" style={{ padding: '2rem 0' }}>
                 {/* ... existing header ... */}
-                <div className="flex-between" style={{ marginBottom: '2rem' }}>
-                    <div>
-                        <h2 style={{ fontSize: '2rem', fontWeight: '800', fontStyle: 'italic', letterSpacing: '-1px' }}>Dashboard</h2>
-                        <p style={{ color: 'var(--text-muted)' }}>Manage inventory & orders</p>
-                    </div>
-                    {/* ... existing tabs ... */}
-                    <div style={{ display: 'flex', gap: '1rem', background: 'var(--bg-surface)', padding: '0.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
-                        <button
-                            className={`btn ${activeTab === 'orders' ? 'btn-primary' : 'btn-ghost'}`}
-                            onClick={() => setActiveTab('orders')}
-                        >
-                            <ShoppingBag size={18} /> Orders
-                        </button>
-                        <button
-                            className={`btn ${activeTab === 'history' ? 'btn-primary' : 'btn-ghost'}`}
-                            onClick={() => setActiveTab('history')}
-                        >
-                            <History size={18} /> History
-                        </button>
-                        <button
-                            className={`btn ${activeTab === 'items' ? 'btn-primary' : 'btn-ghost'}`}
-                            onClick={() => setActiveTab('items')}
-                        >
-                            <Package size={18} /> Inventory
-                        </button>
-                        <button
-                            className={`btn ${activeTab === 'analytics' ? 'btn-primary' : 'btn-ghost'}`}
-                            onClick={() => setActiveTab('analytics')}
-                        >
-                            <BarChart2 size={18} /> Analytics
-                        </button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '2rem' }}>
+                    <div className="flex-between" style={{ flexWrap: 'wrap', gap: '1rem' }}>
+                        <div>
+                            <h2 style={{ fontSize: '2rem', fontWeight: '800', fontStyle: 'italic', letterSpacing: '-1px' }}>Dashboard</h2>
+                            <p style={{ color: 'var(--text-muted)' }}>Manage inventory & orders</p>
+                        </div>
+                        <div className="hide-scrollbar" style={{
+                            display: 'flex',
+                            gap: '0.5rem',
+                            background: 'var(--bg-surface)',
+                            padding: '0.4rem',
+                            borderRadius: '12px',
+                            border: '1px solid var(--border)',
+                            overflowX: 'auto',
+                            maxWidth: '100%',
+                            whiteSpace: 'nowrap'
+                        }}>
+                            <button
+                                className={`btn btn-sm ${activeTab === 'orders' ? 'btn-primary' : ''}`}
+                                onClick={() => setActiveTab('orders')}
+                                style={{
+                                    padding: '0.5rem 1rem',
+                                    color: activeTab === 'orders' ? 'white' : 'rgba(255, 255, 255, 0.6)',
+                                    background: activeTab === 'orders' ? 'var(--primary)' : 'transparent'
+                                }}
+                            >
+                                Orders
+                            </button>
+                            <button
+                                className={`btn btn-sm ${activeTab === 'history' ? 'btn-primary' : ''}`}
+                                onClick={() => setActiveTab('history')}
+                                style={{
+                                    padding: '0.5rem 1rem',
+                                    color: activeTab === 'history' ? 'white' : 'rgba(255, 255, 255, 0.6)',
+                                    background: activeTab === 'history' ? 'var(--primary)' : 'transparent'
+                                }}
+                            >
+                                <History size={16} /> History
+                            </button>
+                            <button
+                                className={`btn btn-sm ${activeTab === 'items' ? 'btn-primary' : ''}`}
+                                onClick={() => setActiveTab('items')}
+                                style={{
+                                    padding: '0.5rem 1rem',
+                                    color: activeTab === 'items' ? 'white' : 'rgba(255, 255, 255, 0.6)',
+                                    background: activeTab === 'items' ? 'var(--primary)' : 'transparent'
+                                }}
+                            >
+                                <Package size={16} /> Inventory
+                            </button>
+                            <button
+                                className={`btn btn-sm ${activeTab === 'analytics' ? 'btn-primary' : ''}`}
+                                onClick={() => setActiveTab('analytics')}
+                                style={{
+                                    padding: '0.5rem 1rem',
+                                    color: activeTab === 'analytics' ? 'white' : 'rgba(255, 255, 255, 0.6)',
+                                    background: activeTab === 'analytics' ? 'var(--primary)' : 'transparent'
+                                }}
+                            >
+                                <BarChart2 size={16} /> Analytics
+                            </button>
+                        </div>
                     </div>
                 </div>
 
                 {/* ... existing store status card ... */}
-                <div className="card" style={{ marginBottom: '2rem', background: 'var(--glass)' }}>
-                    <div className="flex-between">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                            <span style={{ fontWeight: 600 }}>Delivery Mode:</span>
-                            <span className="badge" style={{
+                {/* Delivery Mode Card */}
+                <div className="card" style={{ marginBottom: '1rem', background: 'var(--bg-surface)', padding: '1.2rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', minWidth: '150px' }}>
+                            <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-muted)' }}>Delivery Mode:</span>
+                            <div className="badge" style={{
                                 background: storeStatus.status === 'now' ? 'var(--success)' : 'var(--accent)',
-                                color: 'white'
+                                color: 'white',
+                                alignSelf: 'flex-start',
+                                padding: '0.5rem 1rem',
+                                fontSize: '0.8rem',
+                                fontWeight: 800
                             }}>
                                 {storeStatus.status === 'now' ? 'DELIVERING NOW' : `LATER (${storeStatus.message})`}
-                            </span>
+                            </div>
                         </div>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem', flex: '1 1 auto', justifyContent: 'flex-end' }}>
                             <button
                                 className={`btn ${storeStatus.status === 'now' ? 'btn-primary' : 'btn-outline'}`}
                                 onClick={() => updateStoreStatus('now')}
+                                style={{ flex: 1, maxWidth: '120px' }}
                             >
                                 <CheckCircle size={16} /> Now
                             </button>
                             <button
                                 className={`btn ${storeStatus.status === 'later' ? 'btn-primary' : 'btn-outline'}`}
                                 onClick={() => updateStoreStatus('later')}
+                                style={{ flex: 1, maxWidth: '120px' }}
                             >
                                 <Clock size={16} /> Later
                             </button>
@@ -484,16 +522,20 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* COD Status Card */}
-                <div className="card" style={{ marginBottom: '2rem', background: 'var(--bg-surface)' }}>
-                    <div className="flex-between">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                            <span style={{ fontWeight: 600 }}>Accept Cash on Delivery:</span>
-                            <span className="badge" style={{
+                <div className="card" style={{ marginBottom: '2rem', background: 'var(--bg-surface)', padding: '1.2rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', minWidth: '150px' }}>
+                            <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-muted)' }}>Cash on Delivery:</span>
+                            <div className="badge" style={{
                                 background: storeStatus.codEnabled ? 'var(--success)' : 'var(--text-muted)',
-                                color: 'white'
+                                color: 'white',
+                                alignSelf: 'flex-start',
+                                padding: '0.5rem 1rem',
+                                fontSize: '0.8rem',
+                                fontWeight: 800
                             }}>
                                 {storeStatus.codEnabled ? 'ENABLED' : 'DISABLED'}
-                            </span>
+                            </div>
                         </div>
                         <button
                             className={`btn ${storeStatus.codEnabled ? 'btn-primary' : 'btn-outline'}`}
@@ -510,6 +552,7 @@ const AdminDashboard = () => {
                                     toast.error("Failed to update COD settings");
                                 }
                             }}
+                            style={{ flex: '1 1 auto', maxWidth: '250px' }}
                         >
                             {storeStatus.codEnabled ? 'Disable COD' : 'Enable COD'}
                         </button>
@@ -517,19 +560,20 @@ const AdminDashboard = () => {
                 </div>
 
                 {activeTab === 'items' && (
-                    <div className="grid-responsive">
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                        <div>
                             {/* Categories Manager */}
                             <div className="card">
                                 <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>Manage Categories</h3>
                                 <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
                                     <input
                                         className="input"
-                                        placeholder="New Category (e.g. Snacks)"
+                                        placeholder="New Category..."
                                         value={newCategory}
                                         onChange={(e) => setNewCategory(e.target.value)}
+                                        style={{ padding: '0.6rem 0.8rem', fontSize: '0.9rem' }}
                                     />
-                                    <button onClick={handleAddCategory} className="btn btn-secondary"><Plus size={18} /></button>
+                                    <button onClick={handleAddCategory} className="btn btn-secondary" style={{ padding: '0.6rem 1rem' }}><Plus size={18} /></button>
                                 </div>
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                                     {categories.map(cat => (
@@ -548,16 +592,16 @@ const AdminDashboard = () => {
                                 <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Plus size={20} color="var(--accent)" /> Add New Item</h3>
                                 <form onSubmit={handleAddItem} className="flex-col" style={{ gap: '1rem' }}>
                                     <div>
-                                        <label className="label">Item Name</label>
-                                        <input className="input" value={newItem.name} onChange={(e) => setNewItem({ ...newItem, name: e.target.value })} required />
+                                        <label className="label" style={{ fontSize: '0.85rem' }}>Item Name</label>
+                                        <input className="input" value={newItem.name} onChange={(e) => setNewItem({ ...newItem, name: e.target.value })} required style={{ padding: '0.6rem 0.8rem', fontSize: '0.9rem' }} />
                                     </div>
                                     <div>
-                                        <label className="label">Category</label>
+                                        <label className="label" style={{ fontSize: '0.85rem' }}>Category</label>
                                         <select
                                             className="input"
                                             value={newItem.category}
                                             onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
-                                            style={{ background: 'var(--bg-input)' }}
+                                            style={{ background: 'var(--bg-input)', padding: '0.6rem 0.8rem', fontSize: '0.9rem' }}
                                         >
                                             <option value="">Select Category</option>
                                             {categories.map(cat => (
@@ -566,18 +610,18 @@ const AdminDashboard = () => {
                                             <option value="General">General</option>
                                         </select>
                                     </div>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', alignItems: 'end' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.8rem' }}>
                                         <div>
-                                            <label className="label">Wholesale Price (₹)</label>
-                                            <input type="number" className="input" value={newItem.wholesalePrice} onChange={(e) => setNewItem({ ...newItem, wholesalePrice: e.target.value })} placeholder="Cost Price" />
+                                            <label className="label" style={{ fontSize: '0.75rem', marginBottom: '0.3rem' }}>Wholesale (₹)</label>
+                                            <input type="number" className="input" value={newItem.wholesalePrice} onChange={(e) => setNewItem({ ...newItem, wholesalePrice: e.target.value })} placeholder="Cost" style={{ padding: '0.6rem' }} />
                                         </div>
                                         <div>
-                                            <label className="label">Selling Price (₹)</label>
-                                            <input type="number" className="input" value={newItem.price} onChange={(e) => setNewItem({ ...newItem, price: e.target.value })} required />
+                                            <label className="label" style={{ fontSize: '0.75rem', marginBottom: '0.3rem' }}>Selling (₹)</label>
+                                            <input type="number" className="input" value={newItem.price} onChange={(e) => setNewItem({ ...newItem, price: e.target.value })} required placeholder="Price" style={{ padding: '0.6rem' }} />
                                         </div>
                                         <div>
-                                            <label className="label">Stock</label>
-                                            <input type="number" className="input" value={newItem.stock} onChange={(e) => setNewItem({ ...newItem, stock: e.target.value })} required />
+                                            <label className="label" style={{ fontSize: '0.75rem', marginBottom: '0.3rem' }}>Stock</label>
+                                            <input type="number" className="input" value={newItem.stock} onChange={(e) => setNewItem({ ...newItem, stock: e.target.value })} required placeholder="Stock" style={{ padding: '0.6rem' }} />
                                         </div>
                                     </div>
                                     <div>
@@ -589,33 +633,38 @@ const AdminDashboard = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    <button className="btn btn-primary" type="submit" disabled={loading}>{loading ? 'Processing...' : 'Add Item'}</button>
+                                    <button className="btn btn-primary" type="submit" disabled={loading} style={{ padding: '0.8rem', fontSize: '1rem' }}>{loading ? 'Processing...' : 'Add Item'}</button>
                                 </form>
                             </div>
                         </div>
-                        <div style={{ gridColumn: 'span 2' }}>
+                        <div>
                             <div className="card">
                                 <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Package size={20} color="var(--primary)" /> Current Stock</h3>
                                 {fetchLoading ? <p style={{ color: 'var(--text-muted)' }}>Loading...</p> : (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                         {items.map(item => (
-                                            <div key={item.id} className="card" style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', background: 'var(--bg-card)' }}>
-                                                <img src={item.image} alt={item.name} style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover' }} />
-                                                <div style={{ flex: 1 }}>
-                                                    <h4 style={{ fontWeight: 600 }}>{item.name}</h4>
-                                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{item.category}</p>
-                                                    <p style={{ color: 'var(--text-muted)' }}>Stock: {item.stock}</p>
+                                            <div key={item.id} className="card" style={{ padding: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.8rem', background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                                                <img src={item.image} alt={item.name} style={{ width: '50px', height: '50px', borderRadius: '8px', objectFit: 'cover' }} />
+                                                <div style={{ flex: 1, minWidth: 0 }}>
+                                                    <h4 style={{ fontWeight: 700, fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</h4>
+                                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>Stock: <span style={{ fontWeight: 700, color: item.stock < 10 ? 'var(--danger)' : 'var(--text-main)' }}>{item.stock}</span></p>
                                                 </div>
-                                                <div style={{ textAlign: 'right' }}>
-                                                    <div style={{ fontWeight: 'bold', color: 'var(--accent)' }}>₹{item.price}</div>
-                                                    {item.wholesalePrice && (
-                                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Buy: ₹{item.wholesalePrice}</div>
-                                                    )}
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                                                    <div style={{ textAlign: 'right', minWidth: '50px' }}>
+                                                        <div style={{ fontWeight: 'bold', color: 'var(--accent)', fontSize: '1rem' }}>₹{item.price}</div>
+                                                        {item.wholesalePrice && (
+                                                            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>C: ₹{item.wholesalePrice}</div>
+                                                        )}
+                                                    </div>
+                                                    <div style={{ display: 'flex', gap: '0.3rem' }}>
+                                                        <button onClick={() => handleRestock(item)} className="btn btn-ghost" style={{ padding: '0.4rem', color: 'var(--success)', background: 'rgba(36, 150, 63, 0.1)' }} title="Restock">
+                                                            <RefreshCcw size={16} />
+                                                        </button>
+                                                        <button onClick={() => removeItem(item.id)} className="btn btn-ghost" style={{ padding: '0.4rem', color: 'var(--danger)', background: 'rgba(226, 55, 68, 0.1)' }} title="Delete">
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                                <button onClick={() => handleRestock(item)} className="btn btn-secondary" style={{ padding: '0.5rem', marginRight: '0.5rem', color: 'var(--success)' }} title="Restock">
-                                                    <RefreshCcw size={16} />
-                                                </button>
-                                                <button onClick={() => removeItem(item.id)} className="btn btn-danger" style={{ padding: '0.5rem' }}><Trash2 size={16} /></button>
                                             </div>
                                         ))}
                                     </div>
@@ -627,9 +676,9 @@ const AdminDashboard = () => {
 
                 {activeTab === 'orders' && (
                     <div className="card">
-                        <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
-                            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><ShoppingBag size={20} color="var(--primary)" /> Incoming Orders</h3>
-                            <button className="btn btn-outline" onClick={fetchOrders}>Refresh Lists</button>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
+                            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.1rem' }}>Incoming Orders</h3>
+                            <button className="btn btn-sm btn-outline" onClick={fetchOrders} style={{ padding: '0.5rem 1rem' }}>Refresh Lists</button>
                         </div>
                         {/* ... search ... */}
                         <div style={{ position: 'relative', marginBottom: '1.5rem' }}>
@@ -656,60 +705,108 @@ const AdminDashboard = () => {
                                     order.userDetails.room.includes(searchQuery) ||
                                     order.userDetails.phone.includes(searchQuery)
                                 ).map(order => (
-                                    <div key={order.id} className="card" style={{ padding: '1.5rem', background: 'var(--bg-card)', border: '1px solid var(--accent)' }}>
-                                        {/* ... card content ... */}
-                                        <div className="flex-between" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
-                                            <div>
-                                                <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>
+                                    <div key={order.id} className="card" style={{ padding: '1rem', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '12px' }}>
+                                        {/* Header: Name & Amount */}
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.8rem', paddingBottom: '0.8rem', borderBottom: '1px solid var(--border)' }}>
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '0.3rem' }}>
                                                     {order.userDetails.name}
                                                 </div>
-                                                <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                                                <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                                                     {order.userDetails.hostelBlock} {order.userDetails.hostelBlock && '•'} {order.userDetails.room}
                                                 </div>
-                                                <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{order.userDetails.phone}</div>
+                                                <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{order.userDetails.phone}</div>
                                             </div>
                                             <div style={{ textAlign: 'right' }}>
-                                                <div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--primary)' }}>₹{order.totalAmount}</div>
+                                                <div style={{ fontWeight: 'bold', fontSize: '1.3rem', color: 'var(--primary)' }}>₹{order.totalAmount}</div>
                                                 <div style={{
-                                                    fontSize: '0.8rem',
+                                                    fontSize: '0.7rem',
                                                     fontWeight: 'bold',
                                                     color: order.paymentMode === 'COD' ? 'var(--warning)' : 'var(--success)',
-                                                    marginTop: '0.25rem'
+                                                    marginTop: '0.2rem'
                                                 }}>
                                                     {order.paymentMode === 'COD' ? '💵 CASH ON DELIVERY' : '💳 PAID ONLINE'}
                                                 </div>
-                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Time: {order.userDetails.time}</div>
+                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>Time: {order.userDetails.time}</div>
                                             </div>
                                         </div>
 
+                                        {/* Items List */}
                                         <div style={{ marginBottom: '1rem' }}>
-                                            <ul style={{ listStyle: 'none', padding: 0 }}>
+                                            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                                                 {order.itemSnapshot && order.itemSnapshot.map((item, idx) => (
-                                                    <li key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0' }}>
-                                                        <span>{item.count}x {item.name}</span>
+                                                    <li key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.3rem 0', fontSize: '0.9rem' }}>
+                                                        <span style={{ fontWeight: 500 }}>{item.count}x {item.name}</span>
                                                         <span style={{ color: 'var(--text-muted)' }}>₹{item.price * item.count}</span>
                                                     </li>
                                                 ))}
                                             </ul>
                                             {order.userDetails.notes && (
-                                                <div style={{ marginTop: '0.5rem', padding: '0.5rem', background: 'rgba(255,255,0,0.1)', borderRadius: '4px', fontSize: '0.9rem' }}>
+                                                <div style={{ marginTop: '0.5rem', padding: '0.5rem', background: 'rgba(255,255,0,0.1)', borderRadius: '6px', fontSize: '0.85rem' }}>
                                                     <strong>Note:</strong> {order.userDetails.notes}
                                                 </div>
                                             )}
                                         </div>
 
-                                        <div className="flex-between" style={{ gap: '1rem' }}>
-                                            <div className="badge" style={{ textTransform: 'uppercase', backgroundColor: 'var(--accent)', color: 'white' }}>
+                                        {/* Status Badge & Action Buttons */}
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                                            {/* Status Badge */}
+                                            <div className="badge" style={{
+                                                textTransform: 'uppercase',
+                                                backgroundColor: 'var(--accent)',
+                                                color: 'white',
+                                                alignSelf: 'flex-start',
+                                                padding: '0.4rem 0.8rem',
+                                                fontSize: '0.75rem',
+                                                fontWeight: 700
+                                            }}>
                                                 {order.status}
                                             </div>
-                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
 
-
-                                                <button className="btn btn-secondary" onClick={() => updateOrderStatus(order.id, 'cancelled')} style={{ color: 'var(--danger)' }}>Cancel</button>
+                                            {/* Action Buttons */}
+                                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                                <button
+                                                    className="btn btn-secondary"
+                                                    onClick={() => updateOrderStatus(order.id, 'cancelled')}
+                                                    style={{
+                                                        color: 'var(--danger)',
+                                                        padding: '0.5rem 1rem',
+                                                        fontSize: '0.85rem',
+                                                        flex: '1 1 auto',
+                                                        minWidth: '80px'
+                                                    }}
+                                                >
+                                                    Cancel
+                                                </button>
                                                 {order.status !== 'dispatched' && (
-                                                    <button className="btn btn-secondary" onClick={() => updateOrderStatus(order.id, 'dispatched')} style={{ color: 'var(--accent)', borderColor: 'var(--accent)' }}>Dispatched 🏍️</button>
+                                                    <button
+                                                        className="btn btn-secondary"
+                                                        onClick={() => updateOrderStatus(order.id, 'dispatched')}
+                                                        style={{
+                                                            color: 'var(--accent)',
+                                                            borderColor: 'var(--accent)',
+                                                            padding: '0.5rem 1rem',
+                                                            fontSize: '0.85rem',
+                                                            flex: '1 1 auto',
+                                                            minWidth: '100px'
+                                                        }}
+                                                    >
+                                                        Dispatched 🏍️
+                                                    </button>
                                                 )}
-                                                <button className="btn btn-primary" onClick={() => updateOrderStatus(order.id, 'completed')} style={{ background: 'var(--success)' }}>Mark Done</button>
+                                                <button
+                                                    className="btn btn-primary"
+                                                    onClick={() => updateOrderStatus(order.id, 'completed')}
+                                                    style={{
+                                                        background: 'var(--success)',
+                                                        padding: '0.5rem 1rem',
+                                                        fontSize: '0.85rem',
+                                                        flex: '1 1 auto',
+                                                        minWidth: '100px'
+                                                    }}
+                                                >
+                                                    Mark Done
+                                                </button>
                                             </div>
                                         </div>
                                     </div>

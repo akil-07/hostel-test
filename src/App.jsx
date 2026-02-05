@@ -7,7 +7,6 @@ import UserOrders from './pages/UserOrders';
 import CreateAccount from './pages/CreateAccount';
 import PaymentSuccess from './pages/PaymentSuccess';
 import { Toaster } from 'react-hot-toast';
-import SnackBackground from './components/SnackBackground';
 import { ThemeProvider } from './context/ThemeContext';
 import './App.css';
 
@@ -29,7 +28,6 @@ function App() {
   return (
     <ThemeProvider>
       <Router>
-        <SnackBackground />
         <Toaster position="top-center" toastOptions={{ duration: 4000 }} />
         <Routes>
           <Route path="/" element={<Login />} />
