@@ -263,6 +263,11 @@ const UserMenu = () => {
             return;
         }
 
+        // Show loading immediately for online payments
+        if (paymentMethod === 'online') {
+            setPaymentLoading(true);
+        }
+
         // Save profile for future
         localStorage.setItem('hostel_user_profile', JSON.stringify({
             name: orderDetails.name,
@@ -360,17 +365,17 @@ const UserMenu = () => {
             const data = await res.json();
 
             if (data.url) {
-                // Show loading screen before redirect
-                setPaymentLoading(true);
-                // Redirect user to PhonePe
+                // Redirect user to PhonePe (loading already showing)
                 window.location.href = data.url;
             } else {
                 console.error("No redirect URL received:", data);
+                setPaymentLoading(false);
                 toast.error("Payment initiation failed at server.");
             }
 
         } catch (error) {
             console.error("Payment Error:", error);
+            setPaymentLoading(false);
             toast.error("Failed: " + (error.message || "Check console"));
         }
     };
