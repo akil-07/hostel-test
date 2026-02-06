@@ -133,7 +133,7 @@ const PaymentSuccess = () => {
                         <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>Something went wrong while processing your order info.</p>
 
                         {/* RECOVERY OPTION */}
-                        <div style={{ background: '#f9f9f9', padding: '1rem', borderRadius: 'var(--radius)', marginBottom: '1.5rem', textAlign: 'left', border: '1px solid var(--border)' }}>
+                        <div style={{ background: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--radius)', marginBottom: '1.5rem', textAlign: 'left', border: '1px solid var(--border)' }}>
                             <p style={{ fontSize: '0.9rem', fontWeight: 'bold', marginBottom: '0.5rem', color: 'var(--warning)' }}>Wait! Did you just pay?</p>
                             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>If money was deducted but you see this, we can check the server directly.</p>
                             <button

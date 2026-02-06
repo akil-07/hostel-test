@@ -6,6 +6,7 @@ import UserMenu from './pages/UserMenu';
 import UserOrders from './pages/UserOrders';
 import CreateAccount from './pages/CreateAccount';
 import PaymentSuccess from './pages/PaymentSuccess';
+import Profile from './pages/Profile';
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from './context/ThemeContext';
 import './App.css';
@@ -68,6 +69,14 @@ function App() {
             element={
               <ProtectedRoute requiredRole="user">
                 <PaymentSuccess />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute requiredRole="user">
+                <Profile />
               </ProtectedRoute>
             }
           />

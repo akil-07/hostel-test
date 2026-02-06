@@ -137,7 +137,7 @@ const Login = () => {
     };
 
     return (
-        <div className="flex-center" style={{ minHeight: '100vh', padding: '1rem', position: 'relative' }}>
+        <div className="flex-center" style={{ minHeight: '100vh', padding: '1rem', position: 'relative', background: 'var(--bg-body)' }}>
             <div style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', zIndex: 10 }}>
                 <ThemeToggle />
             </div>

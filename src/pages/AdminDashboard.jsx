@@ -442,7 +442,7 @@ const AdminDashboard = () => {
                                 onClick={() => setActiveTab('orders')}
                                 style={{
                                     padding: '0.5rem 1rem',
-                                    color: activeTab === 'orders' ? 'white' : 'rgba(255, 255, 255, 0.6)',
+                                    color: activeTab === 'orders' ? 'white' : 'var(--text-muted)',
                                     background: activeTab === 'orders' ? 'var(--primary)' : 'transparent'
                                 }}
                             >
@@ -453,7 +453,7 @@ const AdminDashboard = () => {
                                 onClick={() => setActiveTab('history')}
                                 style={{
                                     padding: '0.5rem 1rem',
-                                    color: activeTab === 'history' ? 'white' : 'rgba(255, 255, 255, 0.6)',
+                                    color: activeTab === 'history' ? 'white' : 'var(--text-muted)',
                                     background: activeTab === 'history' ? 'var(--primary)' : 'transparent'
                                 }}
                             >
@@ -464,7 +464,7 @@ const AdminDashboard = () => {
                                 onClick={() => setActiveTab('items')}
                                 style={{
                                     padding: '0.5rem 1rem',
-                                    color: activeTab === 'items' ? 'white' : 'rgba(255, 255, 255, 0.6)',
+                                    color: activeTab === 'items' ? 'white' : 'var(--text-muted)',
                                     background: activeTab === 'items' ? 'var(--primary)' : 'transparent'
                                 }}
                             >
@@ -475,7 +475,7 @@ const AdminDashboard = () => {
                                 onClick={() => setActiveTab('analytics')}
                                 style={{
                                     padding: '0.5rem 1rem',
-                                    color: activeTab === 'analytics' ? 'white' : 'rgba(255, 255, 255, 0.6)',
+                                    color: activeTab === 'analytics' ? 'white' : 'var(--text-muted)',
                                     background: activeTab === 'analytics' ? 'var(--primary)' : 'transparent'
                                 }}
                             >
@@ -742,8 +742,8 @@ const AdminDashboard = () => {
                                                 ))}
                                             </ul>
                                             {order.userDetails.notes && (
-                                                <div style={{ marginTop: '0.5rem', padding: '0.5rem', background: 'rgba(255,255,0,0.1)', borderRadius: '6px', fontSize: '0.85rem' }}>
-                                                    <strong>Note:</strong> {order.userDetails.notes}
+                                                <div style={{ marginTop: '0.5rem', padding: '0.5rem', background: 'var(--bg-subtle)', borderRadius: '6px', fontSize: '0.85rem', border: '1px dashed var(--warning)' }}>
+                                                    <strong style={{ color: 'var(--warning-dark)' }}>Note:</strong> {order.userDetails.notes}
                                                 </div>
                                             )}
                                         </div>

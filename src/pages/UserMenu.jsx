@@ -19,6 +19,8 @@ const UserMenu = () => {
     const [recentItems, setRecentItems] = useState([]);
     const [sortBy, setSortBy] = useState('relevant'); // relevant, sales, priceLow, priceHigh
 
+    const [userPhoto, setUserPhoto] = useState(null);
+
     // Notification State
     const [notiEnabled, setNotiEnabled] = useState(false);
 
@@ -78,6 +80,7 @@ const UserMenu = () => {
             phone: authUser.phone || savedUser.phone || '',
             time: getCurrentTimePlus(30) // Default 30 mins from now
         }));
+        if (authUser.photoURL) setUserPhoto(authUser.photoURL);
         fetchActiveOrder();
     }, []);
 
@@ -397,9 +400,13 @@ const UserMenu = () => {
                     {/* Profile Icon */}
                     <div
                         style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden' }}
-                        onClick={() => toast("Profile clicked")}
+                        onClick={() => navigate('/profile')}
                     >
-                        <User size={20} color="var(--text-main)" />
+                        {userPhoto ? (
+                            <img src={userPhoto} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                            <User size={20} color="var(--text-main)" />
+                        )}
                     </div>
                 </div>
 
@@ -409,7 +416,7 @@ const UserMenu = () => {
                     <input
                         className="input"
                         placeholder="Search for snacks, drinks, or munchies..."
-                        style={{ paddingLeft: '3rem', borderRadius: '12px', boxShadow: 'var(--shadow-sm)', background: 'white', border: '1px solid var(--border)', fontSize: '0.95rem' }}
+                        style={{ paddingLeft: '3rem', borderRadius: '12px', boxShadow: 'var(--shadow-sm)', background: 'var(--bg-input)', border: '1px solid var(--border)', fontSize: '0.95rem' }}
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
                     />
@@ -426,7 +433,7 @@ const UserMenu = () => {
                         <div key={cat} className="flex-col flex-center" style={{ minWidth: '76px', cursor: 'pointer' }} onClick={() => setSelectedCategory(cat)}>
                             <div className="category-avatar flex-center" style={{
                                 border: selectedCategory === cat ? '3px solid var(--primary-light)' : 'none',
-                                background: selectedCategory === cat ? '#fff' : 'var(--bg-subtle)',
+                                background: selectedCategory === cat ? 'var(--bg-surface)' : 'var(--bg-subtle)',
                                 boxShadow: selectedCategory === cat ? 'var(--shadow-md)' : 'none',
                                 width: '76px', height: '76px'
                             }}>
@@ -541,7 +548,7 @@ const UserMenu = () => {
                                     <div style={{ position: 'absolute', top: '6px', left: '6px', background: 'rgba(0,0,0,0.6)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.6rem', fontWeight: 600, color: 'white', backdropFilter: 'blur(4px)' }}>
                                         Promoted
                                     </div>
-                                    <div style={{ position: 'absolute', bottom: '6px', right: '6px', background: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                                    <div style={{ position: 'absolute', bottom: '6px', right: '6px', background: 'var(--bg-surface)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '2px' }}>
                                         <Clock size={10} /> {item.cookingTime || '15m'}
                                     </div>
                                     {item.stock <= 0 && (
@@ -551,7 +558,7 @@ const UserMenu = () => {
                                     )}
                                     {/* Add Button Absolute Overlap */}
                                     {cart[item.id] ? (
-                                        <div style={{ position: 'absolute', bottom: '-10px', right: '8px', display: 'flex', alignItems: 'center', background: 'white', padding: '4px', borderRadius: '8px', gap: '6px', boxShadow: '0 2px 8px rgba(0,0,0,0.12)', border: '1px solid var(--border)' }}>
+                                        <div style={{ position: 'absolute', bottom: '-10px', right: '8px', display: 'flex', alignItems: 'center', background: 'var(--bg-surface)', padding: '4px', borderRadius: '8px', gap: '6px', boxShadow: '0 2px 8px rgba(0,0,0,0.12)', border: '1px solid var(--border)' }}>
                                             <button onClick={(e) => { e.stopPropagation(); removeFromCart(item.id); }} style={{ padding: '2px', color: 'var(--text-secondary)' }}><Minus size={14} /></button>
                                             <span style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--success)' }}>{cart[item.id]}</span>
                                             <button onClick={(e) => { e.stopPropagation(); addToCart(item.id); }} style={{ padding: '2px', color: 'var(--success)' }}><Plus size={14} /></button>
@@ -563,7 +570,7 @@ const UserMenu = () => {
                                             style={{
                                                 position: 'absolute', bottom: '-10px', right: '8px',
                                                 padding: '0.4rem 1.2rem',
-                                                background: item.stock <= 0 ? 'var(--bg-subtle)' : 'white',
+                                                background: item.stock <= 0 ? 'var(--bg-subtle)' : 'var(--bg-surface)',
                                                 color: item.stock <= 0 ? 'var(--text-muted)' : 'var(--danger)',
                                                 border: '1px solid var(--border)',
                                                 borderRadius: '8px',
@@ -613,7 +620,7 @@ const UserMenu = () => {
                     <Clock size={24} />
                     <span>History</span>
                 </div>
-                <div className="nav-item" onClick={() => toast("Profile feature coming soon!")}>
+                <div className="nav-item" onClick={() => navigate('/profile')}>
                     <User size={24} />
                     <span>Profile</span>
                 </div>
@@ -641,10 +648,11 @@ const UserMenu = () => {
                             alignItems: 'center',
                             justifyContent: 'center',
                             boxShadow: '0 6px 16px rgba(226, 55, 68, 0.4)',
-                            border: '4px solid white',
+                            border: '4px solid var(--bg-surface)',
                             position: 'relative'
                         }}
                     >
+                        <ShoppingBag size={28} />
                         <div style={{
                             position: 'absolute',
                             top: '-5px',
@@ -659,7 +667,7 @@ const UserMenu = () => {
                             justifyContent: 'center',
                             fontSize: '0.8rem',
                             fontWeight: 800,
-                            border: '2px solid white'
+                            border: '2px solid var(--bg-surface)'
                         }}>
                             {cartItemCount}
                         </div>
@@ -751,7 +759,7 @@ const UserMenu = () => {
                                                 <div style={{ fontSize: '0.9rem', color: 'var(--primary)' }}>₹{i?.price}</div>
                                             </div>
                                         </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', border: '1px solid var(--border)', padding: '4px 8px', borderRadius: '8px', background: 'white' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', border: '1px solid var(--border)', padding: '4px 8px', borderRadius: '8px', background: 'var(--bg-surface)' }}>
                                             <button onClick={() => removeFromCart(id)} style={{ color: 'var(--danger)' }}><Minus size={16} /></button>
                                             <span style={{ fontWeight: 800, color: 'var(--success)' }}>{count}</span>
                                             <button onClick={() => addToCart(id)} style={{ color: 'var(--success)' }}><Plus size={16} /></button>

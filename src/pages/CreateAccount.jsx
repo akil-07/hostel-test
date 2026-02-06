@@ -68,7 +68,7 @@ const CreateAccount = () => {
     };
 
     return (
-        <div className="flex-center" style={{ minHeight: '100vh', padding: '1rem', backgroundColor: 'var(--bg-main)' }}>
+        <div className="flex-center" style={{ minHeight: '100vh', padding: '1rem', backgroundColor: 'var(--bg-body)' }}>
             <div className="card animate-fade-in" style={{ width: '100%', maxWidth: '400px' }}>
                 <div className="flex-center flex-col" style={{ marginBottom: '2rem' }}>
                     <h1 className="text-gradient" style={{ fontSize: '2rem', fontWeight: 'bold' }}>Create Account</h1>
@@ -140,7 +140,7 @@ const CreateAccount = () => {
                                 value={formData.phone}
                                 readOnly
                                 disabled
-                                style={{ backgroundColor: '#e9ecef', color: '#6c757d' }}
+                                style={{ backgroundColor: 'var(--bg-subtle)', color: 'var(--text-muted)' }}
                             />
                         </div>
                     </div>
