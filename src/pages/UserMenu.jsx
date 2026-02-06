@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import Navbar from '../components/Navbar';
+import BottomNav from '../components/BottomNav';
 import { ShoppingBag, Plus, Minus, Search, Clock, Calendar, MapPin, User, MessageSquare, X, Building, TrendingUp, Filter, Bell, Zap, Home } from 'lucide-react';
 import { subscribeToNotifications } from '../lib/notifications';
 import { db, auth } from '../lib/firebase';
@@ -611,20 +612,7 @@ const UserMenu = () => {
 
             { }
             {/* Bottom Navigation (Fixed) */}
-            <div className="bottom-nav">
-                <div className="nav-item active">
-                    <ShoppingBag size={24} />
-                    <span style={{ fontWeight: 600 }}>Delivery</span>
-                </div>
-                <div className="nav-item" onClick={() => navigate('/orders')}>
-                    <Clock size={24} />
-                    <span>History</span>
-                </div>
-                <div className="nav-item" onClick={() => navigate('/profile')}>
-                    <User size={24} />
-                    <span>Profile</span>
-                </div>
-            </div>
+            <BottomNav activeTab="menu" />
 
             {/* Sticky Cart Footer when items in cart */}
             {/* Floating Round Cart Button (FAB) */}

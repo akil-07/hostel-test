@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
+import BottomNav from '../components/BottomNav';
 import { Clock, CheckCircle, Package, Calendar, Star, X, MessageSquare } from 'lucide-react';
 import { db } from '../lib/firebase';
 import { collection, query, where, getDocs, orderBy, doc, updateDoc } from 'firebase/firestore';
@@ -312,6 +313,8 @@ const UserOrders = () => {
                     </div>
                 </div>
             )}
+
+            <BottomNav activeTab="orders" />
         </div>
     );
 };

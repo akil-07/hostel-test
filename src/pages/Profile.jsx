@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import BottomNav from '../components/BottomNav';
 import { ArrowLeft, User, MapPin, LogOut, Camera, ChevronRight, CreditCard, ShoppingBag, Calendar, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { auth, db, storage } from '../lib/firebase';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { signOut } from 'firebase/auth';
 
@@ -22,9 +23,13 @@ const Profile = () => {
     });
 
     const [isEditingAddress, setIsEditingAddress] = useState(false);
+    const [isPaymentsOpen, setIsPaymentsOpen] = useState(false);
+    const [spendingStats, setSpendingStats] = useState({ week: 0, month: 0 });
+    const [transactions, setTransactions] = useState([]);
 
     useEffect(() => {
         loadUserData();
+        fetchSpendingStats();
     }, []);
 
     const loadUserData = async () => {
@@ -46,6 +51,51 @@ const Profile = () => {
             } catch (error) {
                 console.error("Error fetching user data:", error);
             }
+        }
+    };
+
+    const fetchSpendingStats = async () => {
+        const localUser = JSON.parse(localStorage.getItem('user') || '{}');
+        if (!localUser.phone) return;
+
+        try {
+            const now = new Date();
+
+            // Start of Week (Sunday)
+            const startOfWeek = new Date(now);
+            startOfWeek.setDate(now.getDate() - now.getDay());
+            startOfWeek.setHours(0, 0, 0, 0);
+
+            // Start of Month
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+            const q = query(
+                collection(db, "orders"),
+                where("userDetails.phone", "==", localUser.phone),
+                where("status", "==", "completed")
+            );
+
+            const snapshot = await getDocs(q);
+            let weekTotal = 0;
+            let monthTotal = 0;
+
+            snapshot.docs.forEach(doc => {
+                const data = doc.data();
+                const orderDate = data.timestamp ? new Date(data.timestamp.seconds * 1000) : new Date(); // Fallback if timestamp missing
+
+                if (orderDate >= startOfWeek) {
+                    weekTotal += Number(data.totalAmount || 0);
+                }
+                if (orderDate >= startOfMonth) {
+                    monthTotal += Number(data.totalAmount || 0);
+                }
+            });
+
+            setSpendingStats({ week: weekTotal, month: monthTotal });
+            setTransactions(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => b.timestamp - a.timestamp));
+
+        } catch (error) {
+            console.error("Error fetching spending:", error);
         }
     };
 
@@ -219,14 +269,66 @@ const Profile = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
                     {/* Payments */}
-                    <div className="card" style={{ padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: '16px', border: 'none', boxShadow: 'var(--shadow-sm)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                            <div style={{ background: 'rgba(25, 118, 210, 0.1)', padding: '10px', borderRadius: '50%', color: '#1976d2' }}>
-                                <CreditCard size={20} />
+                    <div className="card" style={{ padding: '0', borderRadius: '16px', border: 'none', boxShadow: 'var(--shadow-sm)', overflow: 'hidden' }}>
+                        <div
+                            style={{ padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
+                            onClick={() => setIsPaymentsOpen(!isPaymentsOpen)}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <div style={{ background: 'rgba(25, 118, 210, 0.1)', padding: '10px', borderRadius: '50%', color: '#1976d2' }}>
+                                    <CreditCard size={20} />
+                                </div>
+                                <span style={{ fontWeight: 600 }}>Payments</span>
                             </div>
-                            <span style={{ fontWeight: 600 }}>Payments</span>
+                            <ChevronRight size={20} color="var(--text-muted)" style={{ transform: isPaymentsOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: '0.3s' }} />
                         </div>
-                        <ChevronRight size={20} color="var(--text-muted)" />
+
+                        {isPaymentsOpen && (
+                            <div style={{ padding: '0 1rem 1.5rem', background: 'var(--bg-subtle)' }}>
+                                {/* Spending Summary Cards */}
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem', marginBottom: '1.5rem' }}>
+                                    <div className="card" style={{ padding: '0.8rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem', background: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
+                                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>This Week</span>
+                                        <span style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--primary)' }}>₹{spendingStats.week}</span>
+                                    </div>
+                                    <div className="card" style={{ padding: '0.8rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem', background: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
+                                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>This Month</span>
+                                        <span style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)' }}>₹{spendingStats.month}</span>
+                                    </div>
+                                </div>
+
+                                <div style={{ marginBottom: '0.5rem', fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                                    Transaction History
+                                </div>
+
+                                {transactions.length > 0 ? (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                        {transactions.slice(0, 5).map(tx => (
+                                            <div key={tx.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.8rem', background: 'var(--bg-surface)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                                                <div>
+                                                    <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>Order Payment</div>
+                                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                                        {tx.timestamp ? new Date(tx.timestamp.seconds * 1000).toLocaleDateString() : 'N/A'} • {tx.timestamp ? new Date(tx.timestamp.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                                                    </div>
+                                                </div>
+                                                <div style={{ fontWeight: 700, color: 'var(--success)' }}>
+                                                    - ₹{tx.totalAmount}
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {transactions.length > 5 && (
+                                            <div style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+                                                + {transactions.length - 5} more transactions
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                                        No transactions found
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     {/* Profile Settings / Address */}
@@ -337,6 +439,8 @@ const Profile = () => {
                 </div>
 
             </div>
+
+            <BottomNav activeTab="profile" />
         </div>
     );
 };

@@ -35,7 +35,7 @@ const Navbar = ({ role }) => {
                 </div>
 
                 {/* Desktop & Mobile Navigation */}
-                <div className={`nav - links ${isOpen ? 'active' : ''} `}>
+                <div className={`nav-links ${isOpen ? 'active' : ''}`}>
                     {role === 'user' && (
                         <>
                             <Link to="/menu" className="btn btn-secondary" onClick={closeMenu}>Menu</Link>
