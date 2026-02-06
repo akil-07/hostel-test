@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import Navbar from '../components/Navbar';
 import BottomNav from '../components/BottomNav';
+import SnackBackground from '../components/SnackBackground';
+import ThemeToggle from '../components/ThemeToggle';
 import { ShoppingBag, Plus, Minus, Search, Clock, Calendar, MapPin, User, MessageSquare, X, Building, TrendingUp, Filter, Bell, Zap, Home } from 'lucide-react';
 import { subscribeToNotifications } from '../lib/notifications';
 import { db, auth } from '../lib/firebase';
@@ -382,7 +384,8 @@ const UserMenu = () => {
     };
 
     return (
-        <div style={{ minHeight: '100vh', background: 'var(--bg-body)', paddingBottom: '90px' }}>
+        <div style={{ minHeight: '100vh', paddingBottom: '90px' }}>
+            <SnackBackground />
 
             {/* Mobile Header */}
             <div className="container" style={{ paddingTop: '1rem', paddingBottom: '0.5rem' }}>
@@ -398,16 +401,21 @@ const UserMenu = () => {
                             </span>
                         </div>
                     </div>
-                    {/* Profile Icon */}
-                    <div
-                        style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden' }}
-                        onClick={() => navigate('/profile')}
-                    >
-                        {userPhoto ? (
-                            <img src={userPhoto} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        ) : (
-                            <User size={20} color="var(--text-main)" />
-                        )}
+                    {/* Right Side: Theme Toggle & Profile */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                        <ThemeToggle />
+
+                        {/* Profile Icon */}
+                        <div
+                            style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden' }}
+                            onClick={() => navigate('/profile')}
+                        >
+                            {userPhoto ? (
+                                <img src={userPhoto} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                                <User size={20} color="var(--text-main)" />
+                            )}
+                        </div>
                     </div>
                 </div>
 

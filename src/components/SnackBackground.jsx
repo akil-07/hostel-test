@@ -125,8 +125,8 @@ const SnackBackground = () => {
                 height: '100%',
                 zIndex: -1,
                 pointerEvents: 'none',
-                background: getGradient(),
-                transition: 'background 0.5s ease'
+                // background: getGradient(), // Removed to let body background show
+                // transition: 'background 0.5s ease'
             }}
         />
     );
