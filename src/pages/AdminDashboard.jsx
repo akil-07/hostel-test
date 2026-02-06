@@ -13,6 +13,7 @@ const AdminDashboard = () => {
     const [newItem, setNewItem] = useState({ name: '', price: '', wholesalePrice: '', stock: '', category: '' });
     const [categories, setCategories] = useState([]);
     const [newCategory, setNewCategory] = useState('');
+    const [categoryImageFile, setCategoryImageFile] = useState(null);
     const [imageFile, setImageFile] = useState(null);
     const [loading, setLoading] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
@@ -140,14 +141,33 @@ const AdminDashboard = () => {
     const handleAddCategory = async (e) => {
         e.preventDefault();
         if (!newCategory.trim()) return;
+        setLoading(true);
         try {
-            await addDoc(collection(db, "categories"), { name: newCategory.trim() });
+            let imageUrl = '';
+            if (categoryImageFile) {
+                try {
+                    const compressionPromise = compressImage(categoryImageFile);
+                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Image timeout")), 5000));
+                    imageUrl = await Promise.race([compressionPromise, timeoutPromise]);
+                } catch (err) {
+                    toast.error("Image Error: " + err.message);
+                    setLoading(false); return;
+                }
+            }
+
+            await addDoc(collection(db, "categories"), {
+                name: newCategory.trim(),
+                image: imageUrl
+            });
             setNewCategory('');
+            setCategoryImageFile(null);
             fetchCategories();
             toast.success("Category added");
         } catch (error) {
+            console.error(error);
             toast.error("Failed to add category");
         }
+        setLoading(false);
     };
 
     const handleDeleteCategory = async (id) => {
@@ -565,21 +585,28 @@ const AdminDashboard = () => {
                             {/* Categories Manager */}
                             <div className="card">
                                 <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>Manage Categories</h3>
-                                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap' }}>
                                     <input
                                         className="input"
                                         placeholder="New Category..."
                                         value={newCategory}
                                         onChange={(e) => setNewCategory(e.target.value)}
-                                        style={{ padding: '0.6rem 0.8rem', fontSize: '0.9rem' }}
+                                        style={{ padding: '0.6rem 0.8rem', fontSize: '0.9rem', flex: 1, minWidth: '150px' }}
                                     />
-                                    <button onClick={handleAddCategory} className="btn btn-secondary" style={{ padding: '0.6rem 1rem' }}><Plus size={18} /></button>
+                                    <div style={{ position: 'relative', overflow: 'hidden', width: '40px', height: '40px', background: 'var(--bg-input)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed var(--border)' }} title="Add Category Image">
+                                        <input type="file" accept="image/*" onChange={(e) => setCategoryImageFile(e.target.files[0])} style={{ position: 'absolute', opacity: 0, width: '100%', height: '100%', cursor: 'pointer' }} />
+                                        {categoryImageFile ? <img src={URL.createObjectURL(categoryImageFile)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Preview" /> : <ImageIcon size={18} color="var(--text-muted)" />}
+                                    </div>
+                                    <button onClick={handleAddCategory} disabled={loading} className="btn btn-secondary" style={{ padding: '0.6rem 1rem' }}>
+                                        {loading ? '...' : <Plus size={18} />}
+                                    </button>
                                 </div>
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                                     {categories.map(cat => (
-                                        <div key={cat.id} className="badge" style={{ padding: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-body)', border: '1px solid var(--border)' }}>
+                                        <div key={cat.id} className="badge" style={{ padding: '0.4rem 0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-body)', border: '1px solid var(--border)', borderRadius: '50px' }}>
+                                            {cat.image && <img src={cat.image} alt="" style={{ width: '20px', height: '20px', borderRadius: '50%', objectFit: 'cover' }} />}
                                             {cat.name}
-                                            <button onClick={() => handleDeleteCategory(cat.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+                                            <button onClick={() => handleDeleteCategory(cat.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex' }}>
                                                 <X size={14} />
                                             </button>
                                         </div>

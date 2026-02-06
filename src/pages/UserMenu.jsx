@@ -156,8 +156,11 @@ const UserMenu = () => {
     const fetchCategories = async () => {
         try {
             const querySnapshot = await getDocs(collection(db, "categories"));
-            const catList = querySnapshot.docs.map(doc => doc.data().name);
-            setCategories(['All', ...catList]);
+            const catList = querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            setCategories([{ id: 'all', name: 'All' }, ...catList]);
         } catch (error) {
             console.error("Error fetching categories", error);
         }
@@ -439,21 +442,22 @@ const UserMenu = () => {
                 </div>
                 <div className="hide-scrollbar" style={{ display: 'flex', gap: '1.5rem', overflowX: 'auto', paddingBottom: '0.5rem', scrollBehavior: 'smooth' }}>
                     {categories.map(cat => (
-                        <div key={cat} className="flex-col flex-center" style={{ minWidth: '76px', cursor: 'pointer' }} onClick={() => setSelectedCategory(cat)}>
+                        <div key={cat.id || cat.name} className="flex-col flex-center" style={{ minWidth: '76px', cursor: 'pointer' }} onClick={() => setSelectedCategory(cat.name)}>
                             <div className="category-avatar flex-center" style={{
-                                border: selectedCategory === cat ? '3px solid var(--primary-light)' : 'none',
-                                background: selectedCategory === cat ? 'var(--bg-surface)' : 'var(--bg-subtle)',
-                                boxShadow: selectedCategory === cat ? 'var(--shadow-md)' : 'none',
-                                width: '76px', height: '76px'
+                                border: selectedCategory === cat.name ? '3px solid var(--primary-light)' : 'none',
+                                background: selectedCategory === cat.name ? 'var(--bg-surface)' : 'var(--bg-subtle)',
+                                boxShadow: selectedCategory === cat.name ? 'var(--shadow-md)' : 'none',
+                                width: '76px', height: '76px',
+                                overflow: 'hidden' // Added overflow to crop custom images nicely
                             }}>
-                                <img src={getCategoryImage(cat)} alt={cat} style={{ width: '42px', height: '42px', objectFit: 'contain' }} />
+                                <img src={cat.image || getCategoryImage(cat.name)} alt={cat.name} style={{ width: cat.image ? '100%' : '42px', height: cat.image ? '100%' : '42px', objectFit: cat.image ? 'cover' : 'contain' }} />
                             </div>
                             <span style={{
                                 fontSize: '0.85rem',
                                 marginTop: '0.4rem',
-                                fontWeight: selectedCategory === cat ? 700 : 500,
-                                color: selectedCategory === cat ? 'var(--text-main)' : 'var(--text-muted)'
-                            }}>{cat}</span>
+                                fontWeight: selectedCategory === cat.name ? 700 : 500,
+                                color: selectedCategory === cat.name ? 'var(--text-main)' : 'var(--text-muted)'
+                            }}>{cat.name}</span>
                         </div>
                     ))}
                 </div>
