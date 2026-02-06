@@ -557,10 +557,7 @@ const UserMenu = () => {
                                 {/* Image Area */}
                                 <div style={{ height: '130px', background: 'var(--bg-subtle)', position: 'relative' }}>
                                     <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                    {/* Promoted / Discount Badge */}
-                                    <div style={{ position: 'absolute', top: '6px', left: '6px', background: 'rgba(0,0,0,0.6)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.6rem', fontWeight: 600, color: 'white', backdropFilter: 'blur(4px)' }}>
-                                        Promoted
-                                    </div>
+                                    {/* Removed Promoted Badge */}
                                     <div style={{ position: 'absolute', bottom: '6px', right: '6px', background: 'var(--bg-surface)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '2px' }}>
                                         <Clock size={10} /> {item.cookingTime || '15m'}
                                     </div>
@@ -599,21 +596,14 @@ const UserMenu = () => {
 
                                 {/* Content Area */}
                                 <div style={{ padding: '0.8rem', paddingTop: '1rem', paddingBottom: '1rem' }}>
-                                    <div className="flex-between" style={{ alignItems: 'flex-start', marginBottom: '0.2rem' }}>
+                                    <div style={{ marginBottom: '0.2rem' }}>
                                         <h4 style={{ fontSize: '0.95rem', fontWeight: 700, lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</h4>
-                                        <div className="badge-rating" style={{ background: 'var(--success)', color: 'white', padding: '2px 4px', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '1px' }}>
-                                            {item.rating || '4.2'} <span style={{ fontSize: '8px' }}>★</span>
-                                        </div>
                                     </div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '60%' }}>
                                             {item.category}
                                         </p>
                                         <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)' }}>₹{item.price}</span>
-                                    </div>
-                                    <div style={{ marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px dashed var(--border)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                                        <TrendingUp size={11} color="#9c27b0" />
-                                        <span style={{ fontSize: '0.65rem', color: '#9c27b0', fontWeight: 600 }}>{Math.floor(Math.random() * 50) + 10}+ sold</span>
                                     </div>
                                 </div>
                             </div>
