@@ -21,6 +21,7 @@ const UserMenu = () => {
     const [loading, setLoading] = useState(true);
     const [recentItems, setRecentItems] = useState([]);
     const [sortBy, setSortBy] = useState('relevant'); // relevant, sales, priceLow, priceHigh
+    const [paymentLoading, setPaymentLoading] = useState(false);
 
     const [userPhoto, setUserPhoto] = useState(null);
 
@@ -359,6 +360,8 @@ const UserMenu = () => {
             const data = await res.json();
 
             if (data.url) {
+                // Show loading screen before redirect
+                setPaymentLoading(true);
                 // Redirect user to PhonePe
                 window.location.href = data.url;
             } else {
@@ -829,6 +832,75 @@ const UserMenu = () => {
                             </button>
                         </div>
                     </div>
+                </div>
+            )}
+
+            {/* Payment Loading Overlay */}
+            {paymentLoading && (
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    background: 'rgba(0, 0, 0, 0.85)',
+                    backdropFilter: 'blur(8px)',
+                    zIndex: 9999,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '2rem'
+                }}>
+                    {/* Animated PhonePe Logo */}
+                    <div style={{
+                        width: '120px',
+                        height: '120px',
+                        background: 'linear-gradient(135deg, #5f259f, #8e44ad)',
+                        borderRadius: '24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 20px 60px rgba(95, 37, 159, 0.5)',
+                        animation: 'pulse 2s ease-in-out infinite'
+                    }}>
+                        <span style={{ fontSize: '3rem', color: 'white', fontWeight: 'bold' }}>₹</span>
+                    </div>
+
+                    {/* Loading Text */}
+                    <div style={{ textAlign: 'center', color: 'white' }}>
+                        <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                            Redirecting to PhonePe
+                        </h2>
+                        <p style={{ fontSize: '0.95rem', opacity: 0.8 }}>
+                            Please wait while we securely process your payment...
+                        </p>
+                    </div>
+
+                    {/* Animated Dots */}
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        {[0, 1, 2].map(i => (
+                            <div
+                                key={i}
+                                style={{
+                                    width: '12px',
+                                    height: '12px',
+                                    background: 'white',
+                                    borderRadius: '50%',
+                                    animation: `bounce 1.4s ease-in-out ${i * 0.2}s infinite`
+                                }}
+                            />
+                        ))}
+                    </div>
+
+                    {/* CSS Animations */}
+                    <style>{`
+                        @keyframes pulse {
+                            0%, 100% { transform: scale(1); }
+                            50% { transform: scale(1.1); }
+                        }
+                        @keyframes bounce {
+                            0%, 80%, 100% { transform: translateY(0); }
+                            40% { transform: translateY(-20px); }
+                        }
+                    `}</style>
                 </div>
             )}
 
