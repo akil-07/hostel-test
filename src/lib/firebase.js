@@ -4,13 +4,13 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyDvXT8SxAB_uwfaaMtRJreECrpn8tDjTKs",
-    authDomain: "hostel-bites-619ab.firebaseapp.com",
-    projectId: "hostel-bites-619ab",
-    storageBucket: "hostel-bites-619ab.firebasestorage.app",
-    messagingSenderId: "520536540012",
-    appId: "1:520536540012:web:62bcd774186c06da1ce949",
-    measurementId: "G-FHVS4249PG"
+    apiKey: "AIzaSyAxM7WNpI3sHnm69eem8hsvjdyJZ4vQUdM",
+    authDomain: "minutes-store.firebaseapp.com",
+    projectId: "minutes-store",
+    storageBucket: "minutes-store.firebasestorage.app",
+    messagingSenderId: "844469005214",
+    appId: "1:844469005214:web:14d8e8307c7846100cc48f",
+    measurementId: "G-MPM5C3R8T2"
 };
 
 const app = initializeApp(firebaseConfig);
