@@ -1,53 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Zap, Smartphone, Key } from 'lucide-react';
+import { UtensilsCrossed, ShoppingBag, Leaf } from 'lucide-react';
 import { auth, db } from '../lib/firebase';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore'; // Import needed Firestore functions
-
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import ThemeToggle from '../components/ThemeToggle';
 
 const Login = () => {
-    // ... existing state ...
-    const [isSignUp, setIsSignUp] = useState(false); // Toggle between Login and Sign Up
-
+    const [isSignUp, setIsSignUp] = useState(false);
     const [loading, setLoading] = useState(false);
-
-    // Sign Up Fields
     const [room, setRoom] = useState('');
     const [phone, setPhone] = useState('');
-
     const navigate = useNavigate();
 
-    // ... existing useEffect ...
     useEffect(() => {
-        // Auto-redirect if already logged in
         const savedUser = JSON.parse(localStorage.getItem('user'));
         if (savedUser && savedUser.uid) {
-            // FIX: Auto-correct role if email matches admin
-            if (savedUser.email === "akilsudhagar7@gmail.com" && savedUser.role !== 'admin') {
+            if (savedUser.email === "apavithrakannan@saveetha.ac.in" && savedUser.role !== 'admin') {
                 const updatedUser = { ...savedUser, role: 'admin' };
                 localStorage.setItem('user', JSON.stringify(updatedUser));
-                toast.success("Admin privileges restored.");
                 navigate('/admin');
                 return;
             }
-
-            if (savedUser.role === 'admin') {
-                navigate('/admin');
-            } else {
-                navigate('/menu');
-            }
+            if (savedUser.role === 'admin') navigate('/admin');
+            else navigate('/menu');
         }
     }, [navigate]);
 
     const handleGoogleAuth = async (e) => {
-        // ... existing handleGoogleAuth ... 
         e.preventDefault();
         setLoading(true);
 
-        // Basic Validation for Sign Up
         if (isSignUp && (!room || !phone)) {
             toast.error("Please fill in Room Number and Phone Number first.");
             setLoading(false);
@@ -60,13 +44,10 @@ const Login = () => {
             const user = result.user;
 
             if (user) {
-                if (user.email === "akilsudhagar7@gmail.com") {
+                if (user.email === "apavithrakannan@saveetha.ac.in") {
                     localStorage.setItem('user', JSON.stringify({
-                        email: user.email,
-                        role: 'admin',
-                        uid: user.uid,
-                        name: user.displayName,
-                        photo: user.photoURL
+                        email: user.email, role: 'admin', uid: user.uid,
+                        name: user.displayName, photo: user.photoURL
                     }));
                     toast.success("Welcome back, Admin!");
                     navigate('/admin');
@@ -74,58 +55,35 @@ const Login = () => {
                     return;
                 }
 
-                // --- AUTOMATIC ROLE RECOGNITION ---
                 const userRef = doc(db, "users", user.uid);
                 const userDoc = await getDoc(userRef);
 
                 if (isSignUp) {
-                    // CREATE ACCOUNT
                     if (userDoc.exists()) {
                         toast.success("Account already exists! Logging you in...");
-                        // Proceed to login logic below
                         const userData = userDoc.data();
-
-                        if (userData.role === 'admin') {
-                            localStorage.setItem('user', JSON.stringify({ ...userData, uid: user.uid }));
-                            navigate('/admin');
-                        } else {
-                            localStorage.setItem('user', JSON.stringify({ ...userData, uid: user.uid }));
-                            navigate('/menu');
-                        }
+                        localStorage.setItem('user', JSON.stringify({ ...userData, uid: user.uid }));
+                        navigate(userData.role === 'admin' ? '/admin' : '/menu');
                     } else {
-                        // Create New User Profile in Firestore
                         await setDoc(userRef, {
-                            name: user.displayName,
-                            email: user.email,
-                            photo: user.photoURL,
-                            room: room,
-                            phone: phone,
-                            role: 'user',
-                            createdAt: new Date()
+                            name: user.displayName, email: user.email,
+                            photo: user.photoURL, room, phone,
+                            role: 'user', createdAt: new Date()
                         });
-
-                        // Save to local for session
                         const userData = { name: user.displayName, email: user.email, photo: user.photoURL, room, phone, role: 'user', uid: user.uid };
                         localStorage.setItem('user', JSON.stringify(userData));
+                        toast.success(`Welcome, ${user.displayName}! 🎉`);
                         navigate('/menu');
                     }
-
                 } else {
-                    // LOGIN
                     if (userDoc.exists()) {
                         const userData = userDoc.data();
                         localStorage.setItem('user', JSON.stringify({ ...userData, uid: user.uid }));
-
-                        if (userData.role === 'admin') {
-                            toast.success("Welcome back, Admin!");
-                            navigate('/admin');
-                        } else {
-                            toast.success(`Welcome back, ${userData.name || 'User'}!`);
-                            navigate('/menu');
-                        }
+                        toast.success(`Welcome back, ${userData.name || 'User'}!`);
+                        navigate(userData.role === 'admin' ? '/admin' : '/menu');
                     } else {
-                        toast.error("Account not found! Please Create an Account first.");
-                        setIsSignUp(true); // Switch to Sign Up tab
+                        toast.error("Account not found! Please create an account first.");
+                        setIsSignUp(true);
                     }
                 }
             }
@@ -137,69 +95,143 @@ const Login = () => {
     };
 
     return (
-        <div className="flex-center" style={{ minHeight: '100vh', padding: '1rem', position: 'relative', background: 'var(--bg-body)' }}>
-            <div style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', zIndex: 10 }}>
+        <div style={{ minHeight: '100vh', background: 'var(--bg-body)', display: 'flex', flexDirection: 'column' }}>
+
+            {/* BigBasket-style Top Bar */}
+            <div style={{
+                background: 'var(--header-bg)',
+                padding: '0.9rem 1.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <div style={{ background: 'var(--primary)', borderRadius: '8px', width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <UtensilsCrossed size={18} color="#1a1a1a" />
+                    </div>
+                    <div>
+                        <div style={{ fontWeight: 800, fontSize: '1rem', color: '#fff', letterSpacing: '-0.3px' }}>Hostel Bites</div>
+                        <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.65)', fontWeight: 500 }}>Fresh · Fast · Delivered</div>
+                    </div>
+                </div>
                 <ThemeToggle />
             </div>
-            <div className="card animate-fade-in" style={{ width: '100%', maxWidth: '400px' }}>
-                <div className="flex-center flex-col" style={{ marginBottom: '2rem' }}>
-                    <Zap size={48} color="var(--primary)" />
-                    <h1 style={{ fontSize: '2.5rem', fontWeight: '800', fontStyle: 'italic', letterSpacing: '-1px', color: 'var(--text-main)', marginBottom: '0.5rem' }}>Hostel Bites</h1>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>Premium Food & Snacks</p>
-                </div>
 
-                {/* Login / Sign Up Tabs */}
-                <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', marginBottom: '1.5rem' }}>
-                    <button
-                        style={{ flex: 1, padding: '1rem', borderBottom: !isSignUp ? '3px solid var(--primary)' : '1px solid var(--border)', fontWeight: !isSignUp ? 'bold' : '500', color: !isSignUp ? 'var(--primary)' : 'var(--text-muted)', background: 'transparent', cursor: 'pointer', transition: 'all 0.2s' }}
-                        onClick={() => setIsSignUp(false)}
-                    >
-                        Login
-                    </button>
-                    <button
-                        style={{ flex: 1, padding: '1rem', borderBottom: isSignUp ? '3px solid var(--primary)' : '1px solid var(--border)', fontWeight: isSignUp ? 'bold' : '500', color: isSignUp ? 'var(--primary)' : 'var(--text-muted)', background: 'transparent', cursor: 'pointer', transition: 'all 0.2s' }}
-                        onClick={() => setIsSignUp(true)}
-                    >
-                        Create Account
-                    </button>
-                </div>
+            {/* Main Content */}
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem' }}>
+                <div style={{ width: '100%', maxWidth: '420px' }}>
 
-                {/* Admin Toggle (Only visible in Login Mode) */}
-
-
-                {/* Sign Up Form Inputs */}
-                {isSignUp && (
-                    <div className="flex-col animate-fade-in" style={{ gap: '1rem', marginBottom: '1rem' }}>
-                        <div className="input-group">
-                            <label className="label">Room Number</label>
-                            <input
-                                className="input"
-                                placeholder="e.g. A-101"
-                                value={room}
-                                onChange={(e) => setRoom(e.target.value)}
-                            />
+                    {/* Hero Section */}
+                    <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                            <div style={{ background: 'var(--primary-light)', borderRadius: '12px', padding: '0.8rem', display: 'inline-flex' }}>
+                                <ShoppingBag size={32} color="var(--primary-dark)" />
+                            </div>
                         </div>
-                        <div className="input-group">
-                            <label className="label">Phone Number</label>
-                            <input
-                                className="input"
-                                placeholder="e.g. 9876543210"
-                                value={phone}
-                                onChange={(e) => setPhone(e.target.value)}
-                            />
+                        <h1 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.4rem', letterSpacing: '-0.5px' }}>
+                            {isSignUp ? 'Create your account' : 'Welcome back!'}
+                        </h1>
+                        <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
+                            {isSignUp ? 'Join and start ordering from your hostel' : 'Sign in to continue ordering'}
+                        </p>
+                    </div>
+
+                    {/* Card */}
+                    <div style={{ background: 'var(--bg-card)', borderRadius: '16px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-md)', overflow: 'hidden' }}>
+
+                        {/* Tab Switcher */}
+                        <div style={{ display: 'flex', borderBottom: '2px solid var(--border)' }}>
+                            {['Login', 'Create Account'].map((label, i) => {
+                                const active = i === 0 ? !isSignUp : isSignUp;
+                                return (
+                                    <button
+                                        key={label}
+                                        onClick={() => setIsSignUp(i === 1)}
+                                        style={{
+                                            flex: 1, padding: '1rem', background: 'transparent', border: 'none', cursor: 'pointer',
+                                            fontWeight: active ? 800 : 500, fontSize: '0.95rem',
+                                            color: active ? 'var(--primary-dark)' : 'var(--text-muted)',
+                                            borderBottom: active ? '3px solid var(--primary)' : '3px solid transparent',
+                                            transition: 'all 0.2s', marginBottom: '-2px'
+                                        }}
+                                    >
+                                        {label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        <div style={{ padding: '1.8rem' }}>
+                            {/* Sign Up Extra Fields */}
+                            {isSignUp && (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }} className="animate-fade-in">
+                                    <div>
+                                        <label style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.4rem', display: 'block' }}>Room Number</label>
+                                        <input
+                                            className="input"
+                                            placeholder="e.g. A-101"
+                                            value={room}
+                                            onChange={e => setRoom(e.target.value)}
+                                            style={{ borderRadius: '10px' }}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.4rem', display: 'block' }}>Phone Number</label>
+                                        <input
+                                            className="input"
+                                            placeholder="e.g. 9876543210"
+                                            type="tel"
+                                            value={phone}
+                                            onChange={e => setPhone(e.target.value)}
+                                            style={{ borderRadius: '10px' }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Google Auth Button */}
+                            <button
+                                onClick={handleGoogleAuth}
+                                disabled={loading}
+                                style={{
+                                    width: '100%', padding: '0.9rem 1rem',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.8rem',
+                                    background: loading ? 'var(--bg-subtle)' : '#fff',
+                                    border: '1.5px solid var(--border)',
+                                    borderRadius: '9999px',
+                                    fontWeight: 700, fontSize: '0.95rem',
+                                    color: 'var(--text-main)',
+                                    cursor: loading ? 'not-allowed' : 'pointer',
+                                    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                {loading ? (
+                                    <div className="spinner" />
+                                ) : (
+                                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="22" height="22" alt="Google" />
+                                )}
+                                {loading ? 'Please wait...' : (isSignUp ? 'Sign Up with Google' : 'Continue with Google')}
+                            </button>
+
+                            {/* Divider info */}
+                            <div style={{ marginTop: '1.4rem', padding: '0.8rem', background: 'var(--bg-subtle)', borderRadius: '10px', display: 'flex', alignItems: 'flex-start', gap: '0.6rem' }}>
+                                <Leaf size={16} color="var(--primary-dark)" style={{ marginTop: '2px', flexShrink: 0 }} />
+                                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                                    {isSignUp
+                                        ? 'We use your Google account to create a secure profile. Your room and phone number help us deliver to the right place.'
+                                        : 'Your account must be registered first. If you are new, switch to "Create Account" tab.'}
+                                </p>
+                            </div>
                         </div>
                     </div>
-                )}
 
-                <button
-                    onClick={handleGoogleAuth}
-                    className="btn btn-secondary"
-                    style={{ width: '100%', padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', fontSize: '1rem' }}
-                    disabled={loading}
-                >
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="24" height="24" alt="Google" />
-                    {loading ? 'Processing...' : (isSignUp ? 'Sign Up with Google' : 'Login with Google')}
-                </button>
+                    {/* Footer note */}
+                    <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                        By continuing, you agree to our Terms & Privacy Policy
+                    </p>
+                </div>
             </div>
         </div>
     );

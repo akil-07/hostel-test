@@ -132,16 +132,14 @@ const UserOrders = () => {
                     </h2>
 
                     {/* Tabs */}
-                    <div style={{ background: 'var(--bg-card)', padding: '0.25rem', borderRadius: '50px', border: '1px solid var(--border)', display: 'flex' }}>
+                    <div style={{ background: 'var(--bg-subtle)', padding: '0.25rem', borderRadius: '9999px', border: '1px solid var(--border)', display: 'flex' }}>
                         <button
                             onClick={() => setActiveTab('active')}
                             style={{
-                                padding: '0.5rem 1.5rem',
-                                borderRadius: '50px',
-                                fontWeight: '600',
+                                padding: '0.5rem 1.4rem', borderRadius: '9999px', fontWeight: 700, fontSize: '0.88rem',
                                 background: activeTab === 'active' ? 'var(--primary)' : 'transparent',
-                                color: activeTab === 'active' ? 'white' : 'var(--text-muted)',
-                                transition: 'all 0.3s'
+                                color: activeTab === 'active' ? '#1a1a1a' : 'var(--text-muted)',
+                                border: 'none', cursor: 'pointer', transition: 'all 0.2s'
                             }}
                         >
                             Active ({activeOrders.length})
@@ -149,12 +147,10 @@ const UserOrders = () => {
                         <button
                             onClick={() => setActiveTab('history')}
                             style={{
-                                padding: '0.5rem 1.5rem',
-                                borderRadius: '50px',
-                                fontWeight: '600',
+                                padding: '0.5rem 1.4rem', borderRadius: '9999px', fontWeight: 700, fontSize: '0.88rem',
                                 background: activeTab === 'history' ? 'var(--primary)' : 'transparent',
-                                color: activeTab === 'history' ? 'white' : 'var(--text-muted)',
-                                transition: 'all 0.3s'
+                                color: activeTab === 'history' ? '#1a1a1a' : 'var(--text-muted)',
+                                border: 'none', cursor: 'pointer', transition: 'all 0.2s'
                             }}
                         >
                             History
@@ -207,9 +203,9 @@ const UserOrders = () => {
 
                                 {/* Delivery OTP Display */}
                                 {['pending', 'preparing', 'accepted', 'ready', 'dispatched'].includes(order.status) && (
-                                    <div style={{ background: 'var(--bg-surface)', padding: '0.75rem', borderRadius: 'var(--radius)', marginBottom: '1rem', border: '1px dashed var(--accent)', textAlign: 'center' }}>
-                                        <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginRight: '0.5rem' }}>Share Delivery PIN:</span>
-                                        <span style={{ fontSize: '1.2rem', fontWeight: 'bold', letterSpacing: '2px', color: 'var(--primary)' }}>{order.deliveryOtp || '----'}</span>
+                                    <div style={{ background: 'var(--primary-light)', padding: '0.75rem', borderRadius: 'var(--radius)', marginBottom: '1rem', border: '1px dashed var(--primary)', textAlign: 'center' }}>
+                                        <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginRight: '0.5rem' }}>Share Delivery PIN:</span>
+                                        <span style={{ fontSize: '1.3rem', fontWeight: 800, letterSpacing: '4px', color: 'var(--primary-dark)' }}>{order.deliveryOtp || '----'}</span>
                                     </div>
                                 )}
 
@@ -253,8 +249,8 @@ const UserOrders = () => {
                                             </>
                                         )}
 
-                                        <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--primary)' }}>
-                                            Total: ₹{order.totalAmount}
+                                        <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--primary-dark)' }}>
+                                            ₹{order.totalAmount}
                                         </div>
                                     </div>
                                 </div>
@@ -307,7 +303,7 @@ const UserOrders = () => {
                             />
                         </div>
 
-                        <button onClick={submitFeedback} className="btn btn-primary" style={{ width: '100%' }}>
+                        <button onClick={submitFeedback} className="btn btn-primary" style={{ width: '100%', borderRadius: '9999px', fontWeight: 800, background: 'var(--primary)', color: '#1a1a1a', boxShadow: '0 4px 12px rgba(132,194,37,0.35)' }}>
                             Submit Feedback
                         </button>
                     </div>
