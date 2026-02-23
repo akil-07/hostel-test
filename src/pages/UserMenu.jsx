@@ -559,59 +559,65 @@ const UserMenu = () => {
                 <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', letterSpacing: '0.5px' }}>{filteredItems.length} Items Available</h3>
 
                 {loading ? <p>Loading delicious food...</p> : (
-                    <div className="grid-responsive" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '1rem' }}>
+                    <div className="grid-responsive" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(155px, 1fr))', gap: '1rem' }}>
                         {filteredItems.map(item => (
-                            <div key={item.id} className="card" style={{ position: 'relative', borderRadius: '16px', border: 'none', boxShadow: 'var(--shadow-md)', marginBottom: '1rem' }}>
+                            <div key={item.id} style={{
+                                background: 'var(--bg-card)',
+                                borderRadius: '12px',
+                                border: '1px solid var(--border)',
+                                boxShadow: 'var(--shadow-sm)',
+                                overflow: 'visible',
+                                position: 'relative',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                transition: 'box-shadow 0.2s',
+                            }}>
                                 {/* Image Area */}
-                                <div style={{ height: '130px', background: 'var(--bg-subtle)', position: 'relative' }}>
+                                <div style={{ height: '140px', background: 'var(--bg-subtle)', borderRadius: '12px 12px 0 0', overflow: 'hidden', position: 'relative' }}>
                                     <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                    {/* Removed Promoted Badge */}
-                                    <div style={{ position: 'absolute', bottom: '6px', right: '6px', background: 'var(--bg-surface)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                                        <Clock size={10} /> {item.cookingTime || '15m'}
-                                    </div>
                                     {item.stock <= 0 && (
-                                        <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: 'var(--text-muted)', fontSize: '1.5rem' }}>
+                                        <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.82)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: 'var(--text-muted)', fontSize: '1.1rem', letterSpacing: '1px' }}>
                                             SOLD OUT
                                         </div>
-                                    )}
-                                    {/* Add Button Absolute Overlap */}
-                                    {cart[item.id] ? (
-                                        <div style={{ position: 'absolute', bottom: '-10px', right: '8px', display: 'flex', alignItems: 'center', background: 'var(--bg-surface)', padding: '4px', borderRadius: '8px', gap: '6px', boxShadow: '0 2px 8px rgba(0,0,0,0.12)', border: '1px solid var(--border)' }}>
-                                            <button onClick={(e) => { e.stopPropagation(); removeFromCart(item.id); }} style={{ padding: '2px', color: 'var(--text-secondary)' }}><Minus size={14} /></button>
-                                            <span style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--success)' }}>{cart[item.id]}</span>
-                                            <button onClick={(e) => { e.stopPropagation(); addToCart(item.id); }} style={{ padding: '2px', color: 'var(--success)' }}><Plus size={14} /></button>
-                                        </div>
-                                    ) : (
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); addToCart(item.id); }}
-                                            disabled={item.stock <= 0}
-                                            style={{
-                                                position: 'absolute', bottom: '-10px', right: '8px',
-                                                padding: '0.4rem 1.2rem',
-                                                background: item.stock <= 0 ? 'var(--bg-subtle)' : 'var(--bg-surface)',
-                                                color: item.stock <= 0 ? 'var(--text-muted)' : 'var(--danger)',
-                                                border: '1px solid var(--border)',
-                                                borderRadius: '8px',
-                                                fontWeight: 800,
-                                                boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-                                                fontSize: '0.85rem'
-                                            }}
-                                        >
-                                            ADD
-                                        </button>
                                     )}
                                 </div>
 
                                 {/* Content Area */}
-                                <div style={{ padding: '0.8rem', paddingTop: '1rem', paddingBottom: '1rem' }}>
-                                    <div style={{ marginBottom: '0.2rem' }}>
-                                        <h4 style={{ fontSize: '0.95rem', fontWeight: 700, lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</h4>
-                                    </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '60%' }}>
-                                            {item.category}
-                                        </p>
-                                        <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)' }}>₹{item.price}</span>
+                                <div style={{ padding: '0.7rem 0.8rem 0.5rem' }}>
+                                    <h4 style={{ fontSize: '0.9rem', fontWeight: 700, lineHeight: 1.3, marginBottom: '0.15rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-main)' }}>{item.name}</h4>
+                                    <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '0.5rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.category}</p>
+
+                                    {/* Price + ADD row */}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.3rem' }}>
+                                        <span style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)' }}>₹{item.price}</span>
+
+                                        {cart[item.id] ? (
+                                            <div style={{ display: 'flex', alignItems: 'center', background: 'var(--primary)', borderRadius: '9999px', padding: '3px 8px', gap: '6px' }}>
+                                                <button onClick={(e) => { e.stopPropagation(); removeFromCart(item.id); }} style={{ background: 'none', border: 'none', color: '#1a1a1a', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 0 }}><Minus size={13} strokeWidth={3} /></button>
+                                                <span style={{ fontWeight: 800, fontSize: '0.85rem', color: '#1a1a1a', minWidth: '14px', textAlign: 'center' }}>{cart[item.id]}</span>
+                                                <button onClick={(e) => { e.stopPropagation(); addToCart(item.id); }} style={{ background: 'none', border: 'none', color: '#1a1a1a', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 0 }}><Plus size={13} strokeWidth={3} /></button>
+                                            </div>
+                                        ) : (
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); addToCart(item.id); }}
+                                                disabled={item.stock <= 0}
+                                                style={{
+                                                    padding: '5px 14px',
+                                                    background: item.stock <= 0 ? 'var(--bg-subtle)' : 'var(--primary)',
+                                                    color: item.stock <= 0 ? 'var(--text-muted)' : '#1a1a1a',
+                                                    border: 'none',
+                                                    borderRadius: '9999px',
+                                                    fontWeight: 800,
+                                                    fontSize: '0.82rem',
+                                                    cursor: item.stock <= 0 ? 'not-allowed' : 'pointer',
+                                                    letterSpacing: '0.5px',
+                                                    boxShadow: item.stock <= 0 ? 'none' : '0 2px 6px rgba(132,194,37,0.35)',
+                                                    transition: 'all 0.15s'
+                                                }}
+                                            >
+                                                ADD
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -641,29 +647,29 @@ const UserMenu = () => {
                             height: '64px',
                             borderRadius: '50%',
                             background: 'var(--primary)',
-                            color: 'white',
+                            color: '#1a1a1a',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            boxShadow: '0 6px 16px rgba(226, 55, 68, 0.4)',
-                            border: '4px solid var(--bg-surface)',
+                            boxShadow: '0 6px 20px rgba(132, 194, 37, 0.5)',
+                            border: '3px solid var(--bg-surface)',
                             position: 'relative'
                         }}
                     >
-                        <ShoppingBag size={28} />
+                        <ShoppingBag size={26} strokeWidth={2.5} />
                         <div style={{
                             position: 'absolute',
                             top: '-5px',
                             right: '-5px',
-                            background: '#ffbe2e',
-                            color: '#1c1c1c',
+                            background: 'var(--accent)',
+                            color: 'white',
                             borderRadius: '50%',
-                            width: '24px',
-                            height: '24px',
+                            width: '22px',
+                            height: '22px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            fontSize: '0.8rem',
+                            fontSize: '0.75rem',
                             fontWeight: 800,
                             border: '2px solid var(--bg-surface)'
                         }}>
@@ -723,9 +729,9 @@ const UserMenu = () => {
                                     handleInitialCheckout();
                                 }}
                                 className="btn btn-primary"
-                                style={{ width: '100%', padding: '1rem', borderRadius: '12px', fontSize: '1.1rem', fontWeight: 800, letterSpacing: '0.5px' }}
+                                style={{ width: '100%', padding: '1rem', borderRadius: '9999px', fontSize: '1.05rem', fontWeight: 800, letterSpacing: '0.5px', background: 'var(--primary)', color: '#1a1a1a', boxShadow: '0 4px 14px rgba(132,194,37,0.4)' }}
                             >
-                                Next: Delivery Details
+                                Proceed to Checkout →
                             </button>
                         </div>
                     </div>
@@ -824,9 +830,9 @@ const UserMenu = () => {
                             <button
                                 onClick={handlePayment}
                                 className="btn btn-primary"
-                                style={{ width: '100%', padding: '1rem', fontSize: '1.2rem', borderRadius: '12px', background: 'linear-gradient(to right, #e23744, #d32f2f)', border: 'none' }}
+                                style={{ width: '100%', padding: '1rem', fontSize: '1.05rem', borderRadius: '9999px', background: 'var(--primary)', color: '#1a1a1a', border: 'none', fontWeight: 800, letterSpacing: '0.5px', boxShadow: '0 4px 16px rgba(132,194,37,0.45)' }}
                             >
-                                Place Order
+                                🛍 Place Order — ₹{totalAmount}
                             </button>
                         </div>
                     </div>
