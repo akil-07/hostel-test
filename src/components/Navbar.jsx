@@ -22,7 +22,7 @@ const Navbar = ({ role }) => {
                 <Link to={role === 'admin' ? '/admin' : '/menu'} className="nav-logo" onClick={closeMenu} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', minWidth: 'fit-content' }}>
                     <img
                         src="/sec-logo.png"
-                        alt="Hostel Bites Logo"
+                        alt="2-Minutes Bites Logo"
                         style={{ height: '42px', width: 'auto', objectFit: 'contain', borderRadius: '8px' }}
                     />
                     {role === 'admin' && <span className="badge" style={{ marginLeft: '0.5rem', background: 'var(--primary)', color: '#1a1a1a', fontSize: '0.7rem' }}>Admin</span>}

@@ -107,7 +107,7 @@ const Login = () => {
                 boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                    <img src="/sec-logo.png" alt="Hostel Bites" style={{ height: '40px', width: 'auto', objectFit: 'contain', borderRadius: '8px' }} />
+                    <img src="/sec-logo.png" alt="2-Minutes Bites" style={{ height: '40px', width: 'auto', objectFit: 'contain', borderRadius: '8px' }} />
                 </div>
                 <ThemeToggle />
             </div>
@@ -119,7 +119,7 @@ const Login = () => {
                     {/* Hero Section */}
                     <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                            <img src="/sec-logo.png" alt="Hostel Bites" style={{ height: '72px', width: 'auto', objectFit: 'contain' }} />
+                            <img src="/sec-logo.png" alt="2-Minutes Bites" style={{ height: '72px', width: 'auto', objectFit: 'contain' }} />
                         </div>
                         <h1 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.4rem', letterSpacing: '-0.5px' }}>
                             {isSignUp ? 'Create your account' : 'Welcome back!'}
