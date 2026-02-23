@@ -214,18 +214,16 @@ const Profile = () => {
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-body)', color: 'var(--text-main)' }}>
-            {/* Header */}
-            <div className="container" style={{ paddingTop: '1rem', paddingBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            {/* BigBasket-style Header */}
+            <div style={{ background: 'var(--header-bg)', padding: '0.9rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
                 <button
                     onClick={() => navigate(-1)}
-                    style={{ background: 'var(--bg-subtle)', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-main)' }}
+                    style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%', width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#fff' }}
                 >
                     <ArrowLeft size={20} />
                 </button>
-                <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>Profile Settings</h2>
-                <div style={{ width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--danger)', borderRadius: '50%', color: 'white' }}>
-                    <AlertCircle size={20} />
-                </div>
+                <h2 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, color: '#fff' }}>My Account</h2>
+                <div style={{ width: '38px' }} />
             </div>
 
             <div className="container animate-fade-in" style={{ paddingBottom: '2rem' }}>
@@ -234,12 +232,12 @@ const Profile = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '2rem 0' }}>
                     <div style={{ position: 'relative' }}>
                         <div style={{
-                            width: '120px',
-                            height: '120px',
+                            width: '110px',
+                            height: '110px',
                             borderRadius: '50%',
                             overflow: 'hidden',
-                            border: '4px solid var(--bg-surface)',
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                            border: '4px solid var(--primary)',
+                            boxShadow: '0 0 0 3px var(--primary-light)',
                             background: 'var(--bg-subtle)',
                             display: 'flex',
                             alignItems: 'center',
@@ -301,7 +299,7 @@ const Profile = () => {
                             onClick={() => setIsPaymentsOpen(!isPaymentsOpen)}
                         >
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                <div style={{ background: 'rgba(25, 118, 210, 0.1)', padding: '10px', borderRadius: '50%', color: '#1976d2' }}>
+                                <div style={{ background: 'var(--primary-light)', padding: '10px', borderRadius: '50%', color: 'var(--primary-dark)' }}>
                                     <CreditCard size={20} />
                                 </div>
                                 <span style={{ fontWeight: 600 }}>Payments</span>
@@ -364,7 +362,7 @@ const Profile = () => {
                             onClick={() => setIsEditingAddress(!isEditingAddress)}
                         >
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                <div style={{ background: 'rgba(0, 150, 136, 0.1)', padding: '10px', borderRadius: '50%', color: '#009688' }}>
+                                <div style={{ background: 'var(--primary-light)', padding: '10px', borderRadius: '50%', color: 'var(--primary-dark)' }}>
                                     <MapPin size={20} />
                                 </div>
                                 <div className="flex-col">
@@ -404,8 +402,8 @@ const Profile = () => {
                                     </select>
                                 </div>
                                 <button
-                                    className="btn btn-primary btn-sm"
-                                    style={{ marginTop: '1rem', width: '100%' }}
+                                    className="btn"
+                                    style={{ marginTop: '1rem', width: '100%', borderRadius: '9999px', background: 'var(--primary)', color: '#1a1a1a', fontWeight: 800, fontSize: '0.95rem', boxShadow: '0 3px 10px rgba(132,194,37,0.35)', border: 'none' }}
                                     onClick={handleSaveAddress}
                                     disabled={loading}
                                 >
@@ -422,7 +420,7 @@ const Profile = () => {
                         onClick={() => navigate('/orders')}
                     >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                            <div style={{ background: 'rgba(56, 142, 60, 0.1)', padding: '10px', borderRadius: '50%', color: '#388e3c' }}>
+                            <div style={{ background: 'var(--primary-light)', padding: '10px', borderRadius: '50%', color: 'var(--primary-dark)' }}>
                                 <ShoppingBag size={20} />
                             </div>
                             <span style={{ fontWeight: 600 }}>Order History</span>
@@ -450,15 +448,16 @@ const Profile = () => {
                         onClick={handleSignOut}
                         className="btn"
                         style={{
-                            background: 'var(--bg-surface)',
-                            color: 'var(--text-main)',
-                            border: '1px solid var(--border)',
-                            padding: '0.8rem 2rem',
-                            borderRadius: '50px',
-                            fontWeight: 600,
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                            background: 'transparent',
+                            color: 'var(--danger)',
+                            border: '1.5px solid var(--danger)',
+                            padding: '0.75rem 2.5rem',
+                            borderRadius: '9999px',
+                            fontWeight: 700,
+                            fontSize: '0.95rem'
                         }}
                     >
+                        <LogOut size={16} style={{ marginRight: '0.4rem' }} />
                         Sign Out
                     </button>
                     {/* Note: Simply Signing out acts as "Switch Account" since next user can login */}
