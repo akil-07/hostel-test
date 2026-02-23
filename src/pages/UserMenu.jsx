@@ -574,25 +574,42 @@ const UserMenu = () => {
                             if (validRecs.length === 0) return null;
 
                             return (
-                                <div className="animate-fade-in" style={{ marginBottom: '2rem' }}>
-                                    <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <div className="container animate-fade-in" style={{ marginBottom: '1.5rem', paddingTop: '0.5rem' }}>
+                                    <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)' }}>
                                         <span style={{ color: 'var(--primary)' }}>↻</span> Buy Again
                                     </h3>
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '0.8rem' }}>
                                         {validRecs.map(rec => {
                                             const liveItem = items.find(i => i.id === rec.id);
                                             return (
-                                                <div key={rec.id} className="card" style={{ padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', border: '1px solid var(--border)' }}>
-                                                    <div style={{ fontWeight: '600', fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{liveItem.name}</div>
-                                                    <div className="flex-between">
-                                                        <span style={{ color: 'var(--accent)', fontWeight: 'bold', fontSize: '0.9rem' }}>₹{liveItem.price}</span>
+                                                <div key={rec.id} style={{
+                                                    background: 'var(--bg-card)',
+                                                    borderRadius: '12px',
+                                                    border: '1px solid var(--border)',
+                                                    boxShadow: 'var(--shadow-sm)',
+                                                    padding: '0.8rem',
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    gap: '0.5rem'
+                                                }}>
+                                                    <div style={{ fontWeight: 700, fontSize: '0.88rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-main)' }}>{liveItem.name}</div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                        <span style={{ color: 'var(--text-main)', fontWeight: 800, fontSize: '0.9rem' }}>₹{liveItem.price}</span>
                                                         <button
-                                                            className="btn btn-sm btn-outline"
-                                                            style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', borderColor: 'var(--border)' }}
+                                                            style={{
+                                                                padding: '4px 12px',
+                                                                background: 'var(--primary)',
+                                                                color: '#1a1a1a',
+                                                                border: 'none',
+                                                                borderRadius: '9999px',
+                                                                fontWeight: 800,
+                                                                fontSize: '0.78rem',
+                                                                cursor: 'pointer'
+                                                            }}
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 addToCart(rec.id);
-                                                                toast.success("Added " + liveItem.name);
+                                                                toast.success('Added ' + liveItem.name);
                                                             }}
                                                         >
                                                             + Add
