@@ -21,7 +21,7 @@ const Navbar = ({ role }) => {
             <div className="container nav-content" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', height: '100%' }}>
                 <Link to={role === 'admin' ? '/admin' : '/menu'} className="nav-logo" onClick={closeMenu} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', minWidth: 'fit-content' }}>
                     <img
-                        src="/logo.png"
+                        src="/sec-logo.png"
                         alt="Hostel Bites Logo"
                         style={{ height: '42px', width: 'auto', objectFit: 'contain', borderRadius: '8px' }}
                     />
