@@ -255,7 +255,7 @@ const UserMenu = () => {
         setShowCheckout(true);
     };
 
-    const [paymentMethod, setPaymentMethod] = useState('online');
+    const [paymentMethod, setPaymentMethod] = useState('cod');
 
     const handlePayment = async () => {
         if (!orderDetails.name || !orderDetails.room || !orderDetails.hostelBlock || !orderDetails.time) {
@@ -809,24 +809,17 @@ const UserMenu = () => {
                                 </div>
                             </div>
 
-                            {/* Payment Method */}
-                            {storeStatus.codEnabled && (
-                                <div style={{ marginTop: '1.5rem', marginBottom: '2rem' }}>
-                                    <h4 style={{ fontSize: '1rem', marginBottom: '1rem', fontWeight: 800 }}>Payment Method</h4>
-                                    <div style={{ display: 'flex', gap: '1rem' }}>
-                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', padding: '0.8rem', border: `1px solid ${paymentMethod === 'online' ? 'var(--primary)' : 'var(--border)'}`, borderRadius: '12px', flex: 1, background: paymentMethod === 'online' ? 'rgba(226, 55, 68, 0.05)' : 'transparent' }}>
-                                            <input type="radio" name="paymentMethod" value="online" checked={paymentMethod === 'online'} onChange={() => setPaymentMethod('online')} style={{ accentColor: 'var(--primary)' }} />
-                                            <Zap size={20} color="var(--primary)" />
-                                            <span style={{ fontWeight: '700', fontSize: '0.9rem' }}>Pay Online</span>
-                                        </label>
-                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', padding: '0.8rem', border: `1px solid ${paymentMethod === 'cod' ? 'var(--success)' : 'var(--border)'}`, borderRadius: '12px', flex: 1, background: paymentMethod === 'cod' ? 'rgba(37, 156, 72, 0.05)' : 'transparent' }}>
-                                            <input type="radio" name="paymentMethod" value="cod" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} style={{ accentColor: 'var(--success)' }} />
-                                            <ShoppingBag size={20} color="var(--success)" />
-                                            <span style={{ fontWeight: '700', fontSize: '0.9rem' }}>Cash on Delivery</span>
-                                        </label>
+                            {/* Payment Method - COD Only */}
+                            <div style={{ marginTop: '1.5rem', marginBottom: '2rem' }}>
+                                <h4 style={{ fontSize: '1rem', marginBottom: '1rem', fontWeight: 800 }}>Payment Method</h4>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '1rem', border: '1px solid var(--success)', borderRadius: '12px', background: 'rgba(37, 156, 72, 0.05)' }}>
+                                    <ShoppingBag size={22} color="var(--success)" />
+                                    <div>
+                                        <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--success)' }}>Cash on Delivery</div>
+                                        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Pay when your order arrives</div>
                                     </div>
                                 </div>
-                            )}
+                            </div>
 
                             <button
                                 onClick={handlePayment}
@@ -840,79 +833,7 @@ const UserMenu = () => {
                 </div>
             )}
 
-            {/* Payment Loading Overlay */}
-            {paymentLoading && (
-                <div style={{
-                    position: 'fixed',
-                    inset: 0,
-                    background: 'rgba(0, 0, 0, 0.85)',
-                    backdropFilter: 'blur(8px)',
-                    zIndex: 9999,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '2rem'
-                }}>
-                    {/* Animated PhonePe Logo */}
-                    <div style={{
-                        width: '120px',
-                        height: '120px',
-                        background: 'linear-gradient(135deg, #5f259f, #8e44ad)',
-                        borderRadius: '24px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 20px 60px rgba(95, 37, 159, 0.5)',
-                        animation: 'pulse 2s ease-in-out infinite'
-                    }}>
-                        <span style={{ fontSize: '3rem', color: 'white', fontWeight: 'bold' }}>₹</span>
-                    </div>
 
-                    {/* Loading Text */}
-                    <div style={{ textAlign: 'center', color: 'white' }}>
-                        <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
-                            Redirecting to PhonePe
-                        </h2>
-                        <p style={{ fontSize: '0.95rem', opacity: 0.8 }}>
-                            Please wait while we securely process your payment...
-                        </p>
-                    </div>
-
-                    {/* Animated Dots */}
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        {[0, 1, 2].map(i => (
-                            <div
-                                key={i}
-                                style={{
-                                    width: '12px',
-                                    height: '12px',
-                                    background: 'white',
-                                    borderRadius: '50%',
-                                    animation: `bounce 1.4s ease-in-out ${i * 0.2}s infinite`
-                                }}
-                            />
-                        ))}
-                    </div>
-
-                    {/* CSS Animations */}
-                    <style>{`
-                        @keyframes pulse {
-                            0%, 100% { transform: scale(1); }
-                            50% { transform: scale(1.1); }
-                        }
-                        @keyframes bounce {
-                            0%, 80%, 100% { transform: translateY(0); }
-                            40% { transform: translateY(-20px); }
-                        }
-                    `}</style>
-                </div>
-            )}
-
-            {/* DEBUG PANEL - Keep simple */}
-            <div style={{ marginTop: '3rem', padding: '1rem', textAlign: 'center', opacity: 0.5, fontSize: '0.7rem' }}>
-                <p>Backend: {API_URL}</p>
-            </div>
         </div>
     );
 };
