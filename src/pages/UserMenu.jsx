@@ -311,9 +311,64 @@ const UserMenu = () => {
                 // Clear Cart
                 setCart({});
                 setShowCheckout(false);
-                toast.success("Order Placed Successfully! please pay on delivery.");
+                toast.success("Order Placed Successfully! Please pay on delivery.");
 
-                // Optional: Trigger Notification
+                // ─── Decrement stock & notify admin if any item runs out ───
+                const outOfStockItems = [];
+
+                await Promise.all(
+                    itemSnapshot.map(async (orderedItem) => {
+                        const itemRef = doc(db, "items", String(orderedItem.id));
+                        const itemSnap = await getDoc(itemRef);
+
+                        if (itemSnap.exists()) {
+                            const currentStock = Number(itemSnap.data().stock || 0);
+                            const newStock = Math.max(0, currentStock - orderedItem.count);
+
+                            await updateDoc(itemRef, { stock: newStock });
+
+                            // Update local items state so UI reflects immediately
+                            setItems(prev =>
+                                prev.map(i =>
+                                    String(i.id) === String(orderedItem.id)
+                                        ? { ...i, stock: newStock }
+                                        : i
+                                )
+                            );
+
+                            if (newStock === 0) {
+                                outOfStockItems.push(orderedItem.name);
+                            }
+                        }
+                    })
+                );
+
+                // Notify admin if any items ran out of stock
+                if (outOfStockItems.length > 0) {
+                    const alertMsg = `⚠️ Out of Stock: ${outOfStockItems.join(', ')}`;
+
+                    // Write to Firestore notifications collection for admin dashboard
+                    await addDoc(collection(db, "notifications"), {
+                        type: "out_of_stock",
+                        message: alertMsg,
+                        items: outOfStockItems,
+                        timestamp: new Date(),
+                        read: false
+                    });
+
+                    // Also send push notification to admin
+                    fetch(`${API_URL}/api/send-notification`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            title: "🚨 Stock Alert!",
+                            message: alertMsg
+                        })
+                    }).catch(e => console.log("Stock alert notify fail", e));
+                }
+                // ────────────────────────────────────────────────────────────
+
+                // Optional: Trigger new order notification
                 fetch(`${API_URL}/api/send-notification`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },

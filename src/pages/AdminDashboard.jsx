@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import Navbar from '../components/Navbar';
-import { Plus, Trash2, Image as ImageIcon, Package, ShoppingBag, CheckCircle, X, Clock, RefreshCcw, Search, History, BarChart2 } from 'lucide-react';
+import { Plus, Trash2, Image as ImageIcon, Package, ShoppingBag, CheckCircle, X, Clock, RefreshCcw, Search, History, BarChart2, AlertTriangle } from 'lucide-react';
 import { db } from '../lib/firebase';
-import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, orderBy, query, getDoc, setDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, orderBy, query, getDoc, setDoc, where, writeBatch } from 'firebase/firestore';
 import { API_URL } from '../config';
 
 const AdminDashboard = () => {
@@ -26,6 +26,7 @@ const AdminDashboard = () => {
     const [selectedOrders, setSelectedOrders] = useState([]);
 
     const [storeStatus, setStoreStatus] = useState({ status: 'now', message: '' });
+    const [stockAlerts, setStockAlerts] = useState([]); // unread out-of-stock notifications
 
     // ... useEffects ...
 
@@ -80,7 +81,36 @@ const AdminDashboard = () => {
         }
         if (activeTab !== 'items') fetchOrders();
         fetchStoreStatus();
+        fetchStockAlerts();
     }, [activeTab]);
+
+    const fetchStockAlerts = async () => {
+        try {
+            const q = query(
+                collection(db, "notifications"),
+                where("type", "==", "out_of_stock"),
+                where("read", "==", false)
+            );
+            const snap = await getDocs(q);
+            const alerts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            setStockAlerts(alerts);
+        } catch (e) {
+            console.log("No stock alerts", e);
+        }
+    };
+
+    const dismissStockAlerts = async () => {
+        try {
+            const batch = writeBatch(db);
+            stockAlerts.forEach(alert => {
+                batch.update(doc(db, "notifications", alert.id), { read: true });
+            });
+            await batch.commit();
+            setStockAlerts([]);
+        } catch (e) {
+            console.log("Dismiss error", e);
+        }
+    };
 
     const fetchStoreStatus = async () => {
         try {
@@ -578,6 +608,38 @@ const AdminDashboard = () => {
                         </button>
                     </div>
                 </div>
+
+                {/* 🚨 Out-of-Stock Alert Banner */}
+                {stockAlerts.length > 0 && (
+                    <div style={{
+                        background: '#fff3cd',
+                        border: '1.5px solid #f59e0b',
+                        borderRadius: '12px',
+                        padding: '1rem 1.2rem',
+                        marginBottom: '1rem',
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '0.8rem'
+                    }}>
+                        <AlertTriangle size={22} color="#d97706" style={{ flexShrink: 0, marginTop: '2px' }} />
+                        <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#92400e', marginBottom: '0.3rem' }}>
+                                🚨 Stock Alert — {stockAlerts.length} item{stockAlerts.length > 1 ? 's' : ''} ran out!
+                            </div>
+                            {stockAlerts.map(alert => (
+                                <div key={alert.id} style={{ fontSize: '0.85rem', color: '#78350f', marginBottom: '0.2rem' }}>
+                                    • {alert.items?.join(', ')}
+                                </div>
+                            ))}
+                        </div>
+                        <button
+                            onClick={dismissStockAlerts}
+                            style={{ background: '#f59e0b', border: 'none', borderRadius: '9999px', padding: '0.3rem 0.9rem', fontWeight: 700, fontSize: '0.8rem', color: '#fff', cursor: 'pointer', flexShrink: 0 }}
+                        >
+                            Dismiss
+                        </button>
+                    </div>
+                )}
 
                 {activeTab === 'items' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
