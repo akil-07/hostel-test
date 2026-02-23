@@ -29,7 +29,7 @@ const Navbar = ({ role }) => {
                 </Link>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: 'auto' }}>
-                    <ThemeToggle />
+                    <ThemeToggle onDark />
 
                     {/* Mobile Menu Toggle */}
                     <button className="mobile-toggle btn-ghost" onClick={toggleMenu} aria-label="Toggle menu" style={{ padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

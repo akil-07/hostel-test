@@ -109,7 +109,7 @@ const Login = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                     <img src="/sec-logo.png" alt="2-Minutes Bites" style={{ height: '40px', width: 'auto', objectFit: 'contain', borderRadius: '8px' }} />
                 </div>
-                <ThemeToggle />
+                <ThemeToggle onDark />
             </div>
 
             {/* Main Content */}
