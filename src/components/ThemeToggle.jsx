@@ -21,9 +21,9 @@ const ThemeToggle = () => {
             }}
         >
             {theme === 'light' ? (
-                <Moon size={20} color="var(--text-main)" />
+                <Moon size={20} color="rgba(255,255,255,0.85)" />
             ) : (
-                <Sun size={20} color="var(--text-main)" />
+                <Sun size={20} color="rgba(255,255,255,0.85)" />
             )}
         </button>
     );

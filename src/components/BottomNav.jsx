@@ -5,31 +5,35 @@ import { ShoppingBag, Clock, User } from 'lucide-react';
 const BottomNav = ({ activeTab }) => {
     const navigate = useNavigate();
 
+    const items = [
+        { tab: 'menu', icon: ShoppingBag, label: 'Delivery', path: '/menu' },
+        { tab: 'orders', icon: Clock, label: 'History', path: '/orders' },
+        { tab: 'profile', icon: User, label: 'Profile', path: '/profile' },
+    ];
+
     return (
         <div className="bottom-nav">
-            <div
-                className={`nav-item ${activeTab === 'menu' ? 'active' : ''}`}
-                onClick={() => navigate('/menu')}
-            >
-                <ShoppingBag size={24} />
-                <span style={{ fontWeight: 600 }}>Delivery</span>
-            </div>
-            <div
-                className={`nav-item ${activeTab === 'orders' ? 'active' : ''}`}
-                onClick={() => navigate('/orders')}
-            >
-                <Clock size={24} />
-                <span>History</span>
-            </div>
-            <div
-                className={`nav-item ${activeTab === 'profile' ? 'active' : ''}`}
-                onClick={() => navigate('/profile')}
-            >
-                <User size={24} />
-                <span>Profile</span>
-            </div>
+            {items.map(({ tab, icon: Icon, label, path }) => {
+                const isActive = activeTab === tab;
+                return (
+                    <div
+                        key={tab}
+                        className={`nav-item ${isActive ? 'active' : ''}`}
+                        onClick={() => navigate(path)}
+                        style={{ color: isActive ? 'var(--primary-dark)' : 'var(--text-muted)' }}
+                    >
+                        <Icon
+                            size={22}
+                            strokeWidth={isActive ? 2.5 : 1.8}
+                            color={isActive ? 'var(--primary)' : 'var(--text-muted)'}
+                        />
+                        <span style={{ fontWeight: isActive ? 700 : 500 }}>{label}</span>
+                    </div>
+                );
+            })}
         </div>
     );
 };
 
 export default BottomNav;
+
