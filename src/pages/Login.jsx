@@ -107,13 +107,7 @@ const Login = () => {
                 boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                    <div style={{ background: 'var(--primary)', borderRadius: '8px', width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <UtensilsCrossed size={18} color="#1a1a1a" />
-                    </div>
-                    <div>
-                        <div style={{ fontWeight: 800, fontSize: '1rem', color: '#fff', letterSpacing: '-0.3px' }}>Hostel Bites</div>
-                        <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.65)', fontWeight: 500 }}>Fresh · Fast · Delivered</div>
-                    </div>
+                    <img src="/logo.png" alt="Hostel Bites" style={{ height: '40px', width: 'auto', objectFit: 'contain', borderRadius: '8px' }} />
                 </div>
                 <ThemeToggle />
             </div>
@@ -125,9 +119,7 @@ const Login = () => {
                     {/* Hero Section */}
                     <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                            <div style={{ background: 'var(--primary-light)', borderRadius: '12px', padding: '0.8rem', display: 'inline-flex' }}>
-                                <ShoppingBag size={32} color="var(--primary-dark)" />
-                            </div>
+                            <img src="/logo.png" alt="Hostel Bites" style={{ height: '72px', width: 'auto', objectFit: 'contain' }} />
                         </div>
                         <h1 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.4rem', letterSpacing: '-0.5px' }}>
                             {isSignUp ? 'Create your account' : 'Welcome back!'}
