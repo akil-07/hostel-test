@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import Navbar from '../components/Navbar';
 import BottomNav from '../components/BottomNav';
-import SnackBackground from '../components/SnackBackground';
+
 import ThemeToggle from '../components/ThemeToggle';
 import { ShoppingBag, Plus, Minus, Search, Clock, Calendar, MapPin, User, MessageSquare, X, Building, TrendingUp, Filter, Bell, Zap, Home } from 'lucide-react';
 import { subscribeToNotifications } from '../lib/notifications';
@@ -396,7 +396,7 @@ const UserMenu = () => {
 
     return (
         <div style={{ minHeight: '100vh', paddingBottom: '90px' }}>
-            <SnackBackground />
+
 
             {/* Mobile Header */}
             <div className="container" style={{ paddingTop: '1rem', paddingBottom: '0.5rem' }}>
