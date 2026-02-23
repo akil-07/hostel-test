@@ -14,10 +14,17 @@ const Login = () => {
     const [phone, setPhone] = useState('');
     const navigate = useNavigate();
 
+    // ─── Admin emails ────────────────────────────────────────────
+    const ADMIN_EMAILS = [
+        "akilsudhagar7@gmail.com",
+        "apavithrakannan@saveetha.ac.in"
+    ];
+    // ─────────────────────────────────────────────────────────────
+
     useEffect(() => {
         const savedUser = JSON.parse(localStorage.getItem('user'));
         if (savedUser && savedUser.uid) {
-            if (savedUser.email === "apavithrakannan@saveetha.ac.in" && savedUser.role !== 'admin') {
+            if (ADMIN_EMAILS.includes(savedUser.email) && savedUser.role !== 'admin') {
                 const updatedUser = { ...savedUser, role: 'admin' };
                 localStorage.setItem('user', JSON.stringify(updatedUser));
                 navigate('/admin');
@@ -44,7 +51,7 @@ const Login = () => {
             const user = result.user;
 
             if (user) {
-                if (user.email === "apavithrakannan@saveetha.ac.in") {
+                if (ADMIN_EMAILS.includes(user.email)) {
                     localStorage.setItem('user', JSON.stringify({
                         email: user.email, role: 'admin', uid: user.uid,
                         name: user.displayName, photo: user.photoURL
