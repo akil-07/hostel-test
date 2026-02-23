@@ -472,9 +472,52 @@ const AdminDashboard = () => {
                 {/* ... existing header ... */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '2rem' }}>
                     <div className="flex-between" style={{ flexWrap: 'wrap', gap: '1rem' }}>
-                        <div>
-                            <h2 style={{ fontSize: '2rem', fontWeight: '800', fontStyle: 'italic', letterSpacing: '-1px' }}>Dashboard</h2>
-                            <p style={{ color: 'var(--text-muted)' }}>Manage inventory & orders</p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <div>
+                                <h2 style={{ fontSize: '2rem', fontWeight: '800', fontStyle: 'italic', letterSpacing: '-1px' }}>Dashboard</h2>
+                                <p style={{ color: 'var(--text-muted)' }}>Manage inventory & orders</p>
+                            </div>
+                            {stockAlerts.length > 0 && (
+                                <div
+                                    onClick={() => {
+                                        const banner = document.getElementById('stock-alert-banner');
+                                        if (banner) banner.scrollIntoView({ behavior: 'smooth' });
+                                    }}
+                                    style={{
+                                        cursor: 'pointer',
+                                        position: 'relative',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        width: '40px',
+                                        height: '40px',
+                                        borderRadius: '50%',
+                                        background: 'rgba(239, 68, 68, 0.1)',
+                                        color: '#ef4444',
+                                        marginTop: '-10px'
+                                    }}
+                                >
+                                    <Bell size={24} />
+                                    <span style={{
+                                        position: 'absolute',
+                                        top: '-4px',
+                                        right: '-4px',
+                                        background: '#ef4444',
+                                        color: 'white',
+                                        borderRadius: '50%',
+                                        width: '20px',
+                                        height: '20px',
+                                        fontSize: '0.75rem',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontWeight: 800,
+                                        border: '2px solid var(--bg-surface)'
+                                    }}>
+                                        {stockAlerts.length}
+                                    </span>
+                                </div>
+                            )}
                         </div>
                         <div className="hide-scrollbar" style={{
                             display: 'flex',
@@ -611,7 +654,7 @@ const AdminDashboard = () => {
 
                 {/* 🚨 Out-of-Stock Alert Banner */}
                 {stockAlerts.length > 0 && (
-                    <div style={{
+                    <div id="stock-alert-banner" style={{
                         background: '#fff3cd',
                         border: '1.5px solid #f59e0b',
                         borderRadius: '12px',

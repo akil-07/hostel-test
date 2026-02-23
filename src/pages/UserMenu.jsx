@@ -212,7 +212,14 @@ const UserMenu = () => {
     // Given the small dataset, client side sort is fine.
 
     const addToCart = (id) => {
-        setCart(prev => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
+        const item = items.find(i => String(i.id) === String(id));
+        if (!item) return;
+        const currentQty = cart[id] || 0;
+        if (currentQty >= item.stock) {
+            toast.error(`Only ${item.stock} in stock!`);
+            return;
+        }
+        setCart(prev => ({ ...prev, [id]: currentQty + 1 }));
     };
 
     const removeFromCart = (id) => {
@@ -590,29 +597,41 @@ const UserMenu = () => {
                                                     padding: '0.8rem',
                                                     display: 'flex',
                                                     flexDirection: 'column',
-                                                    gap: '0.5rem'
+                                                    gap: '0.4rem'
                                                 }}>
-                                                    <div style={{ fontWeight: 700, fontSize: '0.88rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-main)' }}>{liveItem.name}</div>
-                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                    <div style={{ fontWeight: 700, fontSize: '0.88rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-main)', marginBottom: '2px' }}>{liveItem.name}</div>
+
+                                                    {/* Stock indicator */}
+                                                    {liveItem.stock > 0 && liveItem.stock <= 5 ? (
+                                                        <p style={{ fontSize: '0.65rem', fontWeight: 700, color: '#e65100', marginBottom: '2px' }}>
+                                                            Only {liveItem.stock} left
+                                                        </p>
+                                                    ) : liveItem.stock > 5 ? (
+                                                        <p style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--primary-dark)', marginBottom: '2px' }}>
+                                                            {liveItem.stock} in stock
+                                                        </p>
+                                                    ) : null}
+
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
                                                         <span style={{ color: 'var(--text-main)', fontWeight: 800, fontSize: '0.9rem' }}>₹{liveItem.price}</span>
                                                         <button
                                                             style={{
                                                                 padding: '4px 12px',
-                                                                background: 'var(--primary)',
-                                                                color: '#1a1a1a',
+                                                                background: (cart[rec.id] || 0) >= liveItem.stock ? 'var(--bg-subtle)' : 'var(--primary)',
+                                                                color: (cart[rec.id] || 0) >= liveItem.stock ? 'var(--text-muted)' : '#1a1a1a',
                                                                 border: 'none',
                                                                 borderRadius: '9999px',
                                                                 fontWeight: 800,
                                                                 fontSize: '0.78rem',
-                                                                cursor: 'pointer'
+                                                                cursor: (cart[rec.id] || 0) >= liveItem.stock ? 'not-allowed' : 'pointer'
                                                             }}
+                                                            disabled={(cart[rec.id] || 0) >= liveItem.stock}
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 addToCart(rec.id);
-                                                                toast.success('Added ' + liveItem.name);
                                                             }}
                                                         >
-                                                            + Add
+                                                            {(cart[rec.id] || 0) >= liveItem.stock ? 'Max' : '+ Add'}
                                                         </button>
                                                     </div>
                                                 </div>
@@ -655,19 +674,34 @@ const UserMenu = () => {
                                 </div>
 
                                 {/* Content Area */}
-                                <div style={{ padding: '0.7rem 0.8rem 0.5rem' }}>
-                                    <h4 style={{ fontSize: '0.9rem', fontWeight: 700, lineHeight: 1.3, marginBottom: '0.15rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-main)' }}>{item.name}</h4>
-                                    <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '0.5rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.category}</p>
+                                <div style={{ padding: '0.7rem 0.8rem 0.6rem' }}>
+                                    <h4 style={{ fontSize: '0.9rem', fontWeight: 700, lineHeight: 1.3, marginBottom: '0.1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-main)' }}>{item.name}</h4>
+                                    <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '0.25rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.category}</p>
+
+                                    {/* Stock indicator */}
+                                    {item.stock > 0 && item.stock <= 5 ? (
+                                        <p style={{ fontSize: '0.7rem', fontWeight: 700, color: '#e65100', marginBottom: '0.35rem' }}>
+                                            ⚠️ Only {item.stock} left!
+                                        </p>
+                                    ) : item.stock > 5 ? (
+                                        <p style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--primary-dark)', marginBottom: '0.35rem' }}>
+                                            ✓ {item.stock} in stock
+                                        </p>
+                                    ) : null}
 
                                     {/* Price + ADD row */}
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.3rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.2rem' }}>
                                         <span style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)' }}>₹{item.price}</span>
 
                                         {cart[item.id] ? (
                                             <div style={{ display: 'flex', alignItems: 'center', background: 'var(--primary)', borderRadius: '9999px', padding: '3px 8px', gap: '6px' }}>
                                                 <button onClick={(e) => { e.stopPropagation(); removeFromCart(item.id); }} style={{ background: 'none', border: 'none', color: '#1a1a1a', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 0 }}><Minus size={13} strokeWidth={3} /></button>
                                                 <span style={{ fontWeight: 800, fontSize: '0.85rem', color: '#1a1a1a', minWidth: '14px', textAlign: 'center' }}>{cart[item.id]}</span>
-                                                <button onClick={(e) => { e.stopPropagation(); addToCart(item.id); }} style={{ background: 'none', border: 'none', color: '#1a1a1a', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 0 }}><Plus size={13} strokeWidth={3} /></button>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); addToCart(item.id); }}
+                                                    disabled={cart[item.id] >= item.stock}
+                                                    style={{ background: 'none', border: 'none', color: cart[item.id] >= item.stock ? 'rgba(0,0,0,0.3)' : '#1a1a1a', cursor: cart[item.id] >= item.stock ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', padding: 0 }}
+                                                ><Plus size={13} strokeWidth={3} /></button>
                                             </div>
                                         ) : (
                                             <button
