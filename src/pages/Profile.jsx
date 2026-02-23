@@ -3,9 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
 import { ArrowLeft, User, MapPin, LogOut, Camera, ChevronRight, CreditCard, ShoppingBag, Calendar, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { auth, db, storage } from '../lib/firebase';
+import { auth, db } from '../lib/firebase';
 import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { signOut } from 'firebase/auth';
 
 const Profile = () => {
@@ -99,43 +98,70 @@ const Profile = () => {
         }
     };
 
+    // Compress image to base64 (no Firebase Storage needed)
+    const compressImage = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_SIZE = 400; // Profile pics can be small
+                    let width = img.width;
+                    let height = img.height;
+                    if (width > height) {
+                        if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
+                    } else {
+                        if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.7));
+                };
+                img.onerror = () => reject(new Error('Failed to load image'));
+            };
+            reader.onerror = (err) => reject(err);
+        });
+    };
+
     const handleFileSelect = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Validations
         if (!file.type.startsWith('image/')) {
             toast.error("Please select an image file");
             return;
         }
-        if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        if (file.size > 5 * 1024 * 1024) {
             toast.error("Image size should be less than 5MB");
             return;
         }
 
         try {
             setUploading(true);
-            const user = auth.currentUser;
-            const uid = user ? user.uid : userData.uid;
+            const uid = auth.currentUser?.uid || userData.uid;
 
             if (!uid) {
                 toast.error("User ID not found");
                 return;
             }
 
-            const storageRef = ref(storage, `profile_photos/${uid}`);
-            await uploadBytes(storageRef, file);
-            const downloadURL = await getDownloadURL(storageRef);
+            // Compress & convert to base64
+            const base64Image = await compressImage(file);
 
-            // Update Firestore
+            // Save base64 directly to Firestore (no Storage needed)
             await updateDoc(doc(db, "users", uid), {
-                photoURL: downloadURL
+                photoURL: base64Image
             });
 
-            // Update State & Local Storage
-            const updatedUser = { ...userData, photoURL: downloadURL };
+            // Update state & local storage
+            const updatedUser = { ...userData, photoURL: base64Image };
             setUserData(updatedUser);
-            localStorage.setItem('user', JSON.stringify(updatedUser)); // Fix: use updatedUser here
+            localStorage.setItem('user', JSON.stringify(updatedUser));
 
             toast.success("Profile picture updated!");
 
